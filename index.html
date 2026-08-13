@@ -1,0 +1,389 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<base target="_top">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1">
+<title>Sistem Stok Spareparts Heavy Equipment</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@500;600;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#181B21; --surface:#21252D; --surface-2:#292E38; --border:#383F4B;
+    --text:#ECE9E3; --text-muted:#8B93A3;
+    --amber:#F2A93B; --amber-dim:#5A4626;
+    --green:#3ED598; --green-dim:#1F4B3B;
+    --red:#E8604C; --red-dim:#4A2A24;
+    --blue:#5B9BD5; --blue-dim:#1E3A52;
+    --radius:10px;
+  }
+  *{box-sizing:border-box;}
+  body{margin:0;background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;-webkit-tap-highlight-color:transparent;}
+  .mono{font-family:'JetBrains Mono',monospace;}
+  .app{max-width:760px;margin:0 auto;min-height:100vh;display:flex;flex-direction:column;}
+  header.top{padding:18px 16px 14px;border-bottom:1px solid var(--border);position:sticky;top:0;background:var(--bg);z-index:10;}
+  header.top h1{font-family:'Oswald',sans-serif;font-weight:700;font-size:18px;letter-spacing:0.3px;margin:0 0 2px;display:flex;align-items:center;gap:8px;}
+  header.top h1 .dot{width:9px;height:9px;border-radius:50%;background:var(--amber);box-shadow:0 0 8px var(--amber);}
+  header.top .sub{color:var(--text-muted);font-size:12px;}
+  .stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;padding:12px 16px;}
+  .stat{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:10px 12px;}
+  .stat .num{font-family:'Oswald',sans-serif;font-size:20px;font-weight:600;}
+  .stat .lbl{font-size:10.5px;color:var(--text-muted);margin-top:2px;text-transform:uppercase;letter-spacing:0.4px;}
+  .stat.warn .num{color:var(--red);}
+  nav.tabs{display:flex;gap:4px;padding:0 16px 12px;overflow-x:auto;}
+  nav.tabs button{flex:1;background:var(--surface);border:1px solid var(--border);color:var(--text-muted);padding:10px 6px;border-radius:8px;font-size:11.8px;font-weight:600;font-family:'Inter',sans-serif;cursor:pointer;white-space:nowrap;}
+  nav.tabs button.active{background:var(--amber);color:#1A1A1A;border-color:var(--amber);}
+  main{padding:4px 16px 40px;flex:1;}
+  .card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:14px;margin-bottom:10px;}
+  .empty{text-align:center;color:var(--text-muted);padding:36px 16px;font-size:13.5px;}
+  .empty .big{font-size:30px;margin-bottom:8px;}
+  input,select{width:100%;background:var(--surface-2);border:1px solid var(--border);color:var(--text);padding:10px 11px;border-radius:8px;font-size:14px;font-family:'Inter',sans-serif;margin-top:5px;}
+  input:focus,select:focus{outline:2px solid var(--amber);outline-offset:0;border-color:var(--amber);}
+  label{font-size:11.5px;color:var(--text-muted);font-weight:600;text-transform:uppercase;letter-spacing:0.3px;}
+  .field{margin-bottom:12px;}
+  button.btn{cursor:pointer;border:none;border-radius:8px;padding:11px 16px;font-family:'Inter',sans-serif;font-weight:600;font-size:14px;}
+  button.btn:disabled{opacity:0.5;}
+  .btn-amber{background:var(--amber);color:#1A1A1A;}
+  .btn-green{background:var(--green);color:#0E2A20;}
+  .btn-red{background:var(--red);color:#2A0E0A;}
+  .btn-outline{background:transparent;border:1px solid var(--border);color:var(--text);}
+  .btn-block{width:100%;}
+  .found-card{border:1px solid var(--blue);background:var(--blue-dim);border-radius:var(--radius);padding:12px 14px;margin-bottom:12px;}
+  .found-card .pn{font-family:'JetBrains Mono',monospace;color:var(--blue);font-size:12px;}
+  .found-card .nm{font-size:15.5px;font-weight:700;margin:3px 0;}
+  .found-card .stok{font-size:12.5px;color:var(--text-muted);}
+  .found-card .unit{display:inline-block;background:var(--surface-2);padding:2px 8px;border-radius:5px;font-size:11px;margin-top:4px;}
+  .sheet-pills{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:12px;}
+  .sheet-pills button{background:var(--surface);border:1px solid var(--border);color:var(--text-muted);padding:7px 12px;border-radius:20px;font-size:12px;font-weight:600;cursor:pointer;}
+  .sheet-pills button.active{background:var(--amber);color:#1A1A1A;border-color:var(--amber);}
+  .cat-label{font-size:10.5px;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.5px;margin:10px 0 4px;font-weight:700;}
+  table{width:100%;border-collapse:collapse;font-size:13px;}
+  th{text-align:left;color:var(--text-muted);font-size:10.5px;text-transform:uppercase;padding:6px;border-bottom:1px solid var(--border);}
+  td{padding:9px 6px;border-bottom:1px solid var(--border);}
+  tr:last-child td{border-bottom:none;}
+  td.pn{font-family:'JetBrains Mono',monospace;font-size:11.5px;color:var(--blue);}
+  td.qty{font-family:'Oswald',sans-serif;font-weight:600;text-align:right;}
+  td.qty.low{color:var(--red);}
+  .tx-row{padding:10px 0;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;gap:10px;}
+  .tx-row:last-child{border-bottom:none;}
+  .tx-tag{font-size:10px;font-weight:700;padding:3px 8px;border-radius:5px;text-transform:uppercase;}
+  .tx-tag.masuk{background:var(--green-dim);color:var(--green);}
+  .tx-tag.keluar{background:var(--red-dim);color:var(--red);}
+  .tx-meta{font-size:11px;color:var(--text-muted);margin-top:3px;}
+  .tx-unit{font-size:10.5px;color:var(--amber);}
+  .toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:var(--surface-2);border:1px solid var(--amber);padding:10px 18px;border-radius:8px;font-size:13px;z-index:200;max-width:90%;text-align:center;}
+  .filter-row{display:flex;gap:8px;margin-bottom:10px;}
+  .filter-row select{margin-top:0;}
+  .sheet-link{display:inline-block;margin-top:8px;font-size:12px;color:var(--blue);}
+</style>
+</head>
+<body>
+<div class="app">
+  <header class="top">
+    <h1><span class="dot"></span>Stok Spareparts — Heavy Equipment</h1>
+    <div class="sub">Input · Ambil · Stok per Unit Model · Riwayat</div>
+  </header>
+  <div class="stats">
+    <div class="stat"><div class="num" id="statTotal">0</div><div class="lbl">Jenis Part</div></div>
+    <div class="stat"><div class="num" id="statQty">0</div><div class="lbl">Total Qty</div></div>
+    <div class="stat warn"><div class="num" id="statLow">0</div><div class="lbl">Stok Kosong</div></div>
+  </div>
+  <nav class="tabs">
+    <button data-tab="input" class="active">➕ Input</button>
+    <button data-tab="ambil">📤 Ambil</button>
+    <button data-tab="stok">📦 Stok</button>
+    <button data-tab="riwayat">🕘 Riwayat</button>
+  </nav>
+  <main>
+    <section id="tab-input">
+      <div class="card">
+        <div class="field"><label>Unit Model</label><select id="in_unit"></select></div>
+        <div class="field"><label>Parts Number</label><input id="in_pn" class="mono" placeholder="cth: 07000-12345"></div>
+        <div class="field"><label>Parts Description</label><input id="in_desc" placeholder="cth: Filter Oli Hidrolik"></div>
+        <div class="field"><label>Lokasi Penyimpanan</label><input id="in_loc" placeholder="cth: Gudang A, Rak 3, Bin 12"></div>
+        <div class="field"><label>Quantity</label><input id="in_qty" type="number" min="1" placeholder="0"></div>
+        <div class="field"><label>Nama Penginput</label><input id="in_nama" placeholder="nama yang input barang ini"></div>
+        <button class="btn btn-green btn-block" id="btnInput" onclick="inputBarang()">Simpan Input Barang</button>
+      </div>
+    </section>
+    <section id="tab-ambil" style="display:none;">
+      <div class="card">
+        <div class="field"><label>Parts Number</label><input id="ax_pn" class="mono" placeholder="ketik parts number..."></div>
+        <div id="ax_matches"></div>
+        <div id="ax_found"></div>
+        <div class="field"><label>Quantity Diambil</label><input id="ax_qty" type="number" min="1" placeholder="0"></div>
+        <div class="field"><label>Keterangan Keperluan</label><input id="ax_note" placeholder="cth: perbaikan unit PC2000-11 no. seri 105"></div>
+        <div class="field"><label>Nama Pengambil</label><input id="ax_nama" placeholder="nama yang mengambil barang ini"></div>
+        <button class="btn btn-red btn-block" id="btnAmbil" onclick="ambilBarang()">Simpan Ambil Barang</button>
+      </div>
+    </section>
+    <section id="tab-stok" style="display:none;">
+      <div class="cat-label">Excavator</div>
+      <div class="sheet-pills" id="pillsExcavator"></div>
+      <div class="cat-label">Bulldozer</div>
+      <div class="sheet-pills" id="pillsBulldozer"></div>
+      <div class="card">
+        <table>
+          <thead><tr><th>No</th><th>Parts Number</th><th>Parts Description</th><th>Lokasi</th><th style="text-align:right;">Qty</th></tr></thead>
+          <tbody id="stokTableBody"></tbody>
+        </table>
+        <div id="stokEmpty"></div>
+        <a class="sheet-link" id="sheetLink" href="#" target="_top">📄 Buka spreadsheet asli (untuk export Excel / backup)</a>
+      </div>
+    </section>
+    <section id="tab-riwayat" style="display:none;">
+      <div class="filter-row">
+        <select id="filterType"><option value="">Semua Jenis</option><option value="masuk">Input</option><option value="keluar">Ambil</option></select>
+        <select id="filterUnit"><option value="">Semua Unit</option></select>
+      </div>
+      <div class="card" id="riwayatList"></div>
+    </section>
+  </main>
+</div>
+<div id="toastRoot"></div>
+
+<script>
+// --- DEBUG: tampilkan error apa pun secara visual di layar ---
+function showFatalError(msg){
+  let el = document.getElementById('fatalErrorBanner');
+  if(!el){
+    el = document.createElement('div');
+    el.id = 'fatalErrorBanner';
+    el.style.cssText = 'position:fixed;top:0;left:0;right:0;background:#E8604C;color:#fff;padding:10px 14px;font-size:12px;z-index:999;white-space:pre-wrap;';
+    document.body.prepend(el);
+  }
+  el.textContent += (el.textContent?'\n':'') + msg;
+}
+window.onerror = function(msg, url, line, col){ showFatalError('JS Error: ' + msg + ' (baris ' + line + ')'); };
+
+// --- Tab switching: didaftarkan paling awal, tidak bergantung apa pun ---
+try{
+  document.querySelectorAll('nav.tabs button').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      document.querySelectorAll('nav.tabs button').forEach(b=>b.classList.remove('active'));
+      btn.classList.add('active');
+      document.querySelectorAll('main > section').forEach(s=>s.style.display='none');
+      document.getElementById('tab-'+btn.dataset.tab).style.display='block';
+    });
+  });
+}catch(e){ showFatalError('Gagal pasang tab: ' + e.message); }
+
+// --- Daftar unit model: hardcode di sisi client, tidak perlu tunggu server ---
+const UNIT_MODELS = [
+  {cat:'Excavator', code:'PC2000-11'},
+  {cat:'Excavator', code:'PC1250-11'},
+  {cat:'Excavator', code:'CAT395'},
+  {cat:'Excavator', code:'PC500'},
+  {cat:'Excavator', code:'PC210'},
+  {cat:'Bulldozer', code:'D375'},
+  {cat:'Bulldozer', code:'D155'},
+  {cat:'Bulldozer', code:'D85'}
+];
+
+// --- URL Apps Script (backend/API) — link /exec dari deployment Apps Script kamu ---
+const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxPaKqBb0Hfl3XyoU2b-BNKWfU72jhXvE_-WJHJodBTioZwnRw0lgqKMV-oQcP0Y6We/exec';
+
+let parts = [];
+let transactions = [];
+let currentSheet = UNIT_MODELS[0].code;
+let ambilSelectedPartId = null;
+
+function runScript(fnName, ...args){
+  return fetch(APPS_SCRIPT_URL, {
+    method: 'POST',
+    // Content-Type text/plain sengaja dipakai supaya browser tidak kirim preflight OPTIONS
+    // (Apps Script web app tidak menangani preflight CORS)
+    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+    body: JSON.stringify({ action: fnName, params: args })
+  })
+  .then(res => res.json())
+  .then(json => {
+    if(!json.ok) throw new Error(json.error || 'Terjadi kesalahan di server');
+    return json.data;
+  });
+}
+
+function toast(msg){
+  const el = document.createElement('div');
+  el.className = 'toast';
+  el.textContent = msg;
+  document.getElementById('toastRoot').appendChild(el);
+  setTimeout(()=>el.remove(), 2800);
+}
+function esc(s){ return String(s).replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+
+function init(){
+  try{
+    buildSelectors();
+  }catch(e){ showFatalError('Gagal buildSelectors: ' + e.message); }
+  try{
+    const savedNama = localStorage.getItem('stok_nama_terakhir');
+    if(savedNama){
+      document.getElementById('in_nama').value = savedNama;
+      document.getElementById('ax_nama').value = savedNama;
+    }
+  }catch(e){ /* localStorage tidak tersedia, abaikan */ }
+  loadData();
+}
+
+async function loadData(){
+  try{
+    const data = await runScript('getAllData');
+    parts = data.parts;
+    transactions = data.transactions;
+    render();
+  }catch(e){
+    showFatalError('Gagal memuat data dari Google Sheets: ' + (e.message||e));
+    render();
+  }
+}
+
+function buildSelectors(){
+  const inUnit = document.getElementById('in_unit');
+  const excGroup = document.createElement('optgroup'); excGroup.label='Excavator';
+  const bullGroup = document.createElement('optgroup'); bullGroup.label='Bulldozer';
+  UNIT_MODELS.forEach(u=>{
+    const opt = document.createElement('option'); opt.value=u.code; opt.textContent=u.code;
+    (u.cat==='Excavator'?excGroup:bullGroup).appendChild(opt);
+  });
+  inUnit.appendChild(excGroup); inUnit.appendChild(bullGroup);
+
+  const filterUnit = document.getElementById('filterUnit');
+  UNIT_MODELS.forEach(u=>{
+    const opt = document.createElement('option'); opt.value=u.code; opt.textContent=u.code;
+    filterUnit.appendChild(opt);
+  });
+
+  const pillsExc = document.getElementById('pillsExcavator');
+  const pillsBull = document.getElementById('pillsBulldozer');
+  UNIT_MODELS.forEach(u=>{
+    const btn = document.createElement('button');
+    btn.textContent = u.code; btn.dataset.code = u.code;
+    if(u.code===currentSheet) btn.classList.add('active');
+    btn.onclick = ()=>{ currentSheet = u.code; renderStokSheet(); };
+    (u.cat==='Excavator'?pillsExc:pillsBull).appendChild(btn);
+  });
+}
+
+function render(){
+  renderStats(); renderStokSheet(); renderRiwayat();
+}
+function renderStats(){
+  document.getElementById('statTotal').textContent = parts.length;
+  document.getElementById('statQty').textContent = parts.reduce((s,p)=>s+Number(p.qty),0);
+  document.getElementById('statLow').textContent = parts.filter(p=>Number(p.qty)<=0).length;
+}
+function renderStokSheet(){
+  document.querySelectorAll('.sheet-pills button').forEach(b=>b.classList.toggle('active', b.dataset.code===currentSheet));
+  const rows = parts.filter(p=>p.unit===currentSheet);
+  const tbody = document.getElementById('stokTableBody');
+  const emptyEl = document.getElementById('stokEmpty');
+  if(rows.length===0){
+    tbody.innerHTML='';
+    emptyEl.innerHTML = `<div class="empty"><div class="big">📭</div>Belum ada data sparepart untuk <strong>${esc(currentSheet)}</strong>.</div>`;
+    return;
+  }
+  emptyEl.innerHTML='';
+  tbody.innerHTML = rows.map((p,i)=>`<tr><td>${i+1}</td><td class="pn">${esc(p.pn)}</td><td>${esc(p.desc)}</td><td style="color:var(--text-muted);font-size:12px;">${esc(p.loc||'-')}</td><td class="qty ${p.qty<=0?'low':''}">${p.qty}</td></tr>`).join('');
+}
+function renderRiwayat(){
+  const typeF = document.getElementById('filterType').value;
+  const unitF = document.getElementById('filterUnit').value;
+  let list = [...transactions];
+  if(typeF) list = list.filter(t=>t.type===typeF);
+  if(unitF) list = list.filter(t=>t.unit===unitF);
+  list.sort((a,b)=>b.ts-a.ts);
+  const el = document.getElementById('riwayatList');
+  if(list.length===0){ el.innerHTML = `<div class="empty"><div class="big">🕘</div>Belum ada riwayat transaksi.</div>`; return; }
+  el.innerHTML = list.map(t=>`
+    <div class="tx-row">
+      <div>
+        <div style="font-weight:600;font-size:13.5px;">${esc(t.desc)}</div>
+        <div class="tx-meta mono">${esc(t.pn)}</div>
+        <div class="tx-unit">🚜 ${esc(t.unit)}</div>
+        ${t.note ? `<div class="tx-meta">📝 ${esc(t.note)}</div>` : ''}
+        ${t.nama ? `<div class="tx-meta">👤 ${esc(t.nama)}</div>` : ''}
+        <div class="tx-meta">${new Date(t.ts).toLocaleString('id-ID')}</div>
+      </div>
+      <div style="text-align:right;">
+        <span class="tx-tag ${t.type}">${t.type==='masuk'?'Input':'Ambil'}</span>
+        <div style="font-family:'Oswald',sans-serif;font-weight:600;margin-top:4px;">${t.type==='masuk'?'+':'-'}${t.qty}</div>
+      </div>
+    </div>`).join('');
+}
+document.getElementById('filterType').addEventListener('change', renderRiwayat);
+document.getElementById('filterUnit').addEventListener('change', renderRiwayat);
+
+async function inputBarang(){
+  const unit = document.getElementById('in_unit').value;
+  const pn = document.getElementById('in_pn').value.trim();
+  const desc = document.getElementById('in_desc').value.trim();
+  const loc = document.getElementById('in_loc').value.trim();
+  const qty = Number(document.getElementById('in_qty').value);
+  const nama = document.getElementById('in_nama').value.trim();
+  if(!pn || !desc){ toast('Parts Number dan Description wajib diisi'); return; }
+  if(!qty || qty<=0){ toast('Quantity harus lebih dari 0'); return; }
+  if(!nama){ toast('Nama penginput wajib diisi'); return; }
+
+  const btn = document.getElementById('btnInput'); btn.disabled = true; btn.textContent='Menyimpan...';
+  try{
+    const data = await runScript('inputBarang', unit, pn, desc, loc, qty, nama);
+    parts = data.parts; transactions = data.transactions;
+    toast(`Input tersimpan untuk ${pn} di ${unit}`);
+    document.getElementById('in_pn').value=''; document.getElementById('in_desc').value=''; document.getElementById('in_loc').value=''; document.getElementById('in_qty').value='';
+    try{ localStorage.setItem('stok_nama_terakhir', nama); }catch(e){}
+    currentSheet = unit; render();
+  }catch(e){ toast('Gagal: ' + (e.message||e)); }
+  btn.disabled=false; btn.textContent='Simpan Input Barang';
+}
+
+document.getElementById('ax_pn').addEventListener('input', function(e){
+  const q = e.target.value.trim().toLowerCase();
+  ambilSelectedPartId = null;
+  document.getElementById('ax_found').innerHTML='';
+  const matchesEl = document.getElementById('ax_matches');
+  if(!q){ matchesEl.innerHTML=''; return; }
+  const matches = parts.filter(p=>p.pn.toLowerCase().includes(q));
+  if(matches.length===0){ matchesEl.innerHTML = `<div style="color:var(--red);font-size:12.5px;margin:4px 0 10px;">Parts number tidak ditemukan.</div>`; return; }
+  if(matches.length===1 && matches[0].pn.toLowerCase()===q){ selectAmbilPart(matches[0].id); matchesEl.innerHTML=''; return; }
+  matchesEl.innerHTML = `<div style="margin:6px 0 10px;">` + matches.slice(0,8).map(p=>`
+    <button type="button" class="btn btn-outline" style="display:block;width:100%;text-align:left;margin-bottom:6px;font-size:12.5px;" onclick="selectAmbilPart('${p.id}')">
+      <span class="mono">${esc(p.pn)}</span> — ${esc(p.desc)} <span style="color:var(--amber);">(${esc(p.unit)}, stok ${p.qty})</span>
+    </button>`).join('') + `</div>`;
+});
+function selectAmbilPart(id){
+  ambilSelectedPartId = id;
+  const p = parts.find(x=>x.id===id);
+  if(!p) return;
+  document.getElementById('ax_matches').innerHTML='';
+  document.getElementById('ax_pn').value = p.pn;
+  document.getElementById('ax_found').innerHTML = `<div class="found-card"><div class="pn mono">${esc(p.pn)}</div><div class="nm">${esc(p.desc)}</div><div class="stok">Stok saat ini: <strong>${p.qty}</strong>${p.loc ? ' · Lokasi: '+esc(p.loc) : ''}</div><span class="unit">🚜 ${esc(p.unit)}</span></div>`;
+}
+async function ambilBarang(){
+  if(!ambilSelectedPartId){ toast('Pilih parts number yang valid dari daftar stok'); return; }
+  const part = parts.find(p=>p.id===ambilSelectedPartId);
+  if(!part){ toast('Data part tidak ditemukan'); return; }
+  const qty = Number(document.getElementById('ax_qty').value);
+  const note = document.getElementById('ax_note').value.trim();
+  const nama = document.getElementById('ax_nama').value.trim();
+  if(!qty || qty<=0){ toast('Quantity harus lebih dari 0'); return; }
+  if(!note){ toast('Keterangan keperluan wajib diisi'); return; }
+  if(!nama){ toast('Nama pengambil wajib diisi'); return; }
+
+  const btn = document.getElementById('btnAmbil'); btn.disabled=true; btn.textContent='Menyimpan...';
+  try{
+    const data = await runScript('ambilBarang', part.unit, part.pn, qty, note, nama);
+    parts = data.parts; transactions = data.transactions;
+    toast(`Ambil barang tersimpan untuk ${part.pn}`);
+    document.getElementById('ax_pn').value=''; document.getElementById('ax_qty').value=''; document.getElementById('ax_note').value='';
+    document.getElementById('ax_found').innerHTML=''; ambilSelectedPartId=null;
+    try{ localStorage.setItem('stok_nama_terakhir', nama); }catch(e){}
+    currentSheet = part.unit; render();
+  }catch(e){ toast('Gagal: ' + (e.message||e)); }
+  btn.disabled=false; btn.textContent='Simpan Ambil Barang';
+}
+
+init();
+</script>
+</body>
+</html>
