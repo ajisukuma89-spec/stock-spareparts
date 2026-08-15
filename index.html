@@ -98,13 +98,15 @@
   </nav>
   <main>
     <section id="tab-stok">
+      <div class="field"><input id="stok_search" placeholder="🔍 Cari parts number atau nama part..."></div>
+      <div class="sheet-pills" id="pillsSemua"></div>
       <div class="cat-label">Excavator</div>
       <div class="sheet-pills" id="pillsExcavator"></div>
       <div class="cat-label">Bulldozer</div>
       <div class="sheet-pills" id="pillsBulldozer"></div>
       <div class="card">
         <table>
-          <thead><tr><th>No</th><th>Parts Number</th><th>Parts Description</th><th>Lokasi</th><th style="text-align:right;">Qty</th></tr></thead>
+          <thead><tr><th>No</th><th>Parts Number</th><th>Parts Description</th><th>Unit</th><th>Lokasi</th><th style="text-align:right;">Qty</th></tr></thead>
           <tbody id="stokTableBody"></tbody>
         </table>
         <div id="stokEmpty"></div>
@@ -187,7 +189,7 @@ const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxgXp4-aq6ZrXhn
 
 let parts = [];
 let transactions = [];
-let currentSheet = UNIT_MODELS[0].code;
+let currentSheet = 'ALL';
 let ambilSelectedPartId = null;
 
 // Deteksi otomatis: apakah halaman ini sedang dibuka dari Apps Script
@@ -268,13 +270,20 @@ function buildSelectors(){
     filterUnit.appendChild(opt);
   });
 
+  const pillsSemua = document.getElementById('pillsSemua');
+  const btnSemua = document.createElement('button');
+  btnSemua.textContent = '📦 Semua Unit'; btnSemua.dataset.code = 'ALL';
+  if(currentSheet==='ALL') btnSemua.classList.add('active');
+  btnSemua.onclick = ()=>{ currentSheet = 'ALL'; document.getElementById('stok_search').value=''; renderStokSheet(); };
+  pillsSemua.appendChild(btnSemua);
+
   const pillsExc = document.getElementById('pillsExcavator');
   const pillsBull = document.getElementById('pillsBulldozer');
   UNIT_MODELS.forEach(u=>{
     const btn = document.createElement('button');
     btn.textContent = u.code; btn.dataset.code = u.code;
     if(u.code===currentSheet) btn.classList.add('active');
-    btn.onclick = ()=>{ currentSheet = u.code; renderStokSheet(); };
+    btn.onclick = ()=>{ currentSheet = u.code; document.getElementById('stok_search').value=''; renderStokSheet(); };
     (u.cat==='Excavator'?pillsExc:pillsBull).appendChild(btn);
   });
 }
@@ -289,17 +298,29 @@ function renderStats(){
 }
 function renderStokSheet(){
   document.querySelectorAll('.sheet-pills button').forEach(b=>b.classList.toggle('active', b.dataset.code===currentSheet));
-  const rows = parts.filter(p=>p.unit===currentSheet);
+  const q = document.getElementById('stok_search').value.trim().toLowerCase();
   const tbody = document.getElementById('stokTableBody');
   const emptyEl = document.getElementById('stokEmpty');
+
+  let rows;
+  if(q){
+    rows = parts.filter(p=>p.pn.toLowerCase().includes(q) || p.desc.toLowerCase().includes(q));
+  } else if(currentSheet==='ALL'){
+    rows = [...parts];
+  } else {
+    rows = parts.filter(p=>p.unit===currentSheet);
+  }
+
   if(rows.length===0){
     tbody.innerHTML='';
-    emptyEl.innerHTML = `<div class="empty"><div class="big">📭</div>Belum ada data sparepart untuk <strong>${esc(currentSheet)}</strong>.</div>`;
+    const msg = q ? `Tidak ada parts number/nama yang cocok dengan "<strong>${esc(q)}</strong>".` : `Belum ada data sparepart untuk <strong>${esc(currentSheet)}</strong>.`;
+    emptyEl.innerHTML = `<div class="empty"><div class="big">📭</div>${msg}</div>`;
     return;
   }
   emptyEl.innerHTML='';
-  tbody.innerHTML = rows.map((p,i)=>`<tr><td>${i+1}</td><td class="pn">${esc(p.pn)}</td><td>${esc(p.desc)}</td><td class="loc">${esc(p.loc||'-')}</td><td class="qty ${p.qty<=0?'low':''}">${p.qty}</td></tr>`).join('');
+  tbody.innerHTML = rows.map((p,i)=>`<tr><td>${i+1}</td><td class="pn">${esc(p.pn)}</td><td>${esc(p.desc)}</td><td>🚜 ${esc(p.unit)}</td><td class="loc">${esc(p.loc||'-')}</td><td class="qty ${p.qty<=0?'low':''}">${p.qty}</td></tr>`).join('');
 }
+document.getElementById('stok_search').addEventListener('input', renderStokSheet);
 function renderRiwayat(){
   const typeF = document.getElementById('filterType').value;
   const unitF = document.getElementById('filterUnit').value;
