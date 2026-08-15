@@ -24,7 +24,7 @@
   header.top{padding:18px 16px 14px;border-bottom:1px solid var(--border);position:sticky;top:0;background:var(--bg);z-index:10;}
   header.top h1{font-family:'Oswald',sans-serif;font-weight:700;font-size:18px;letter-spacing:0.3px;margin:0 0 2px;display:flex;align-items:center;gap:8px;}
   header.top h1 .dot{width:9px;height:9px;border-radius:50%;background:var(--amber);box-shadow:0 0 8px var(--amber);}
-  header.top .sub{color:var(--text-muted);font-size:12px;}
+  header.top .sub{color:var(--text);font-size:12px;font-weight:600;}
   .stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;padding:12px 16px;}
   .stat{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:10px 12px;}
   .stat .num{font-family:'Oswald',sans-serif;font-size:20px;font-weight:600;}
@@ -37,9 +37,10 @@
   .card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:14px;margin-bottom:10px;}
   .empty{text-align:center;color:var(--text-muted);padding:36px 16px;font-size:13.5px;}
   .empty .big{font-size:30px;margin-bottom:8px;}
-  input,select{width:100%;background:var(--surface-2);border:1px solid var(--border);color:var(--text);padding:10px 11px;border-radius:8px;font-size:14px;font-family:'Inter',sans-serif;margin-top:5px;}
+  input,select{width:100%;background:var(--surface-2);border:1px solid var(--border);color:var(--text);padding:10px 11px;border-radius:8px;font-size:14px;font-weight:500;font-family:'Inter',sans-serif;margin-top:5px;}
+  input::placeholder{color:var(--text-muted);opacity:0.65;font-weight:400;}
   input:focus,select:focus{outline:2px solid var(--amber);outline-offset:0;border-color:var(--amber);}
-  label{font-size:11.5px;color:var(--text-muted);font-weight:600;text-transform:uppercase;letter-spacing:0.3px;}
+  label{font-size:11.5px;color:var(--text);font-weight:600;text-transform:uppercase;letter-spacing:0.3px;}
   .field{margin-bottom:12px;}
   button.btn{cursor:pointer;border:none;border-radius:8px;padding:11px 16px;font-family:'Inter',sans-serif;font-weight:600;font-size:14px;}
   button.btn:disabled{opacity:0.5;}
@@ -63,6 +64,7 @@
   tr:last-child td{border-bottom:none;}
   td.pn{font-family:'JetBrains Mono',monospace;font-size:11.5px;color:var(--blue);}
   td.qty{font-family:'Oswald',sans-serif;font-weight:600;text-align:right;}
+  td.loc{color:var(--text);font-weight:500;font-size:13px;}
   td.qty.low{color:var(--red);}
   .tx-row{padding:10px 0;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;gap:10px;}
   .tx-row:last-child{border-bottom:none;}
@@ -80,8 +82,8 @@
 <body>
 <div class="app">
   <header class="top">
-    <h1><span class="dot"></span>Stok Spareparts — Heavy Equipment</h1>
-    <div class="sub">Input · Ambil · Stok per Unit Model · Riwayat</div>
+    <h1><span class="dot"></span>Stock Spareparts TRACK — AMM SBS</h1>
+    <div class="sub mono">Check - Ambil - Catat</div>
   </header>
   <div class="stats">
     <div class="stat"><div class="num" id="statTotal">0</div><div class="lbl">Jenis Part</div></div>
@@ -89,35 +91,13 @@
     <div class="stat warn"><div class="num" id="statLow">0</div><div class="lbl">Stok Kosong</div></div>
   </div>
   <nav class="tabs">
-    <button data-tab="input" class="active">➕ Input</button>
+    <button data-tab="stok" class="active">📦 Stok</button>
     <button data-tab="ambil">📤 Ambil</button>
-    <button data-tab="stok">📦 Stok</button>
+    <button data-tab="input">➕ Input</button>
     <button data-tab="riwayat">🕘 Riwayat</button>
   </nav>
   <main>
-    <section id="tab-input">
-      <div class="card">
-        <div class="field"><label>Unit Model</label><select id="in_unit"></select></div>
-        <div class="field"><label>Parts Number</label><input id="in_pn" class="mono" placeholder="cth: 07000-12345"></div>
-        <div class="field"><label>Parts Description</label><input id="in_desc" placeholder="cth: Filter Oli Hidrolik"></div>
-        <div class="field"><label>Lokasi Penyimpanan</label><input id="in_loc" placeholder="cth: Gudang A, Rak 3, Bin 12"></div>
-        <div class="field"><label>Quantity</label><input id="in_qty" type="number" min="1" placeholder="0"></div>
-        <div class="field"><label>Nama Penginput</label><input id="in_nama" placeholder="nama yang input barang ini"></div>
-        <button class="btn btn-green btn-block" id="btnInput" onclick="inputBarang()">Simpan Input Barang</button>
-      </div>
-    </section>
-    <section id="tab-ambil" style="display:none;">
-      <div class="card">
-        <div class="field"><label>Parts Number</label><input id="ax_pn" class="mono" placeholder="ketik parts number..."></div>
-        <div id="ax_matches"></div>
-        <div id="ax_found"></div>
-        <div class="field"><label>Quantity Diambil</label><input id="ax_qty" type="number" min="1" placeholder="0"></div>
-        <div class="field"><label>Keterangan Keperluan</label><input id="ax_note" placeholder="cth: perbaikan unit PC2000-11 no. seri 105"></div>
-        <div class="field"><label>Nama Pengambil</label><input id="ax_nama" placeholder="nama yang mengambil barang ini"></div>
-        <button class="btn btn-red btn-block" id="btnAmbil" onclick="ambilBarang()">Simpan Ambil Barang</button>
-      </div>
-    </section>
-    <section id="tab-stok" style="display:none;">
+    <section id="tab-stok">
       <div class="cat-label">Excavator</div>
       <div class="sheet-pills" id="pillsExcavator"></div>
       <div class="cat-label">Bulldozer</div>
@@ -129,6 +109,28 @@
         </table>
         <div id="stokEmpty"></div>
         <a class="sheet-link" id="sheetLink" href="#" target="_top">📄 Buka spreadsheet asli (untuk export Excel / backup)</a>
+      </div>
+    </section>
+    <section id="tab-ambil" style="display:none;">
+      <div class="card">
+        <div class="field"><label>Parts Number</label><input id="ax_pn" class="mono" placeholder="Ketik parts number..."></div>
+        <div id="ax_matches"></div>
+        <div id="ax_found"></div>
+        <div class="field"><label>Quantity Diambil</label><input id="ax_qty" type="number" min="1" class="mono" placeholder="0"></div>
+        <div class="field"><label>Keterangan Keperluan</label><input id="ax_note" class="mono" placeholder="cth: Perbaikan unit E5138"></div>
+        <div class="field"><label>Nama Pengambil</label><input id="ax_nama" class="mono" placeholder="Masukan nama anda"></div>
+        <button class="btn btn-red btn-block" id="btnAmbil" onclick="ambilBarang()">Simpan Ambil Barang</button>
+      </div>
+    </section>
+    <section id="tab-input" style="display:none;">
+      <div class="card">
+        <div class="field"><label>Unit Model</label><select id="in_unit"></select></div>
+        <div class="field"><label>Parts Number</label><input id="in_pn" class="mono" placeholder="cth: 07040-11209"></div>
+        <div class="field"><label>Parts Description</label><input id="in_desc" class="mono" placeholder="cth: Plug final drive"></div>
+        <div class="field"><label>Lokasi Penyimpanan</label><input id="in_loc" class="mono" placeholder="cth: Rak abu, Lemari hijau, Laydown"></div>
+        <div class="field"><label>Quantity</label><input id="in_qty" type="number" min="1" class="mono" placeholder="0"></div>
+        <div class="field"><label>Nama Penginput</label><input id="in_nama" class="mono" placeholder="Masukan nama anda"></div>
+        <button class="btn btn-green btn-block" id="btnInput" onclick="inputBarang()">Simpan Input Barang</button>
       </div>
     </section>
     <section id="tab-riwayat" style="display:none;">
@@ -188,12 +190,24 @@ let transactions = [];
 let currentSheet = UNIT_MODELS[0].code;
 let ambilSelectedPartId = null;
 
+// Deteksi otomatis: apakah halaman ini sedang dibuka dari Apps Script
+// (google.script.run cuma ada kalau halaman disajikan lewat HtmlService Apps Script)
+const RUNNING_ON_APPS_SCRIPT = (typeof google !== 'undefined' && google.script && google.script.run);
+
 function runScript(fnName, ...args){
-  return fetch(APPS_SCRIPT_URL, {
+  if (RUNNING_ON_APPS_SCRIPT) {
+    // Dibuka lewat link Apps Script -> pakai jembatan bawaan google.script.run (paling stabil, tanpa CORS)
+    return new Promise((resolve, reject) => {
+      google.script.run
+        .withSuccessHandler(resolve)
+        .withFailureHandler(err => reject(new Error(err.message || err)))
+        [fnName](...args);
+    });
+  }
+  // Dibuka dari luar Apps Script (mis. di-hosting di Vercel) -> lewat proxy /api/proxy
+  return fetch('/api/proxy', {
     method: 'POST',
-    // Content-Type text/plain sengaja dipakai supaya browser tidak kirim preflight OPTIONS
-    // (Apps Script web app tidak menangani preflight CORS)
-    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+    headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ action: fnName, params: args })
   })
   .then(res => res.json())
@@ -284,7 +298,7 @@ function renderStokSheet(){
     return;
   }
   emptyEl.innerHTML='';
-  tbody.innerHTML = rows.map((p,i)=>`<tr><td>${i+1}</td><td class="pn">${esc(p.pn)}</td><td>${esc(p.desc)}</td><td style="color:var(--text-muted);font-size:12px;">${esc(p.loc||'-')}</td><td class="qty ${p.qty<=0?'low':''}">${p.qty}</td></tr>`).join('');
+  tbody.innerHTML = rows.map((p,i)=>`<tr><td>${i+1}</td><td class="pn">${esc(p.pn)}</td><td>${esc(p.desc)}</td><td class="loc">${esc(p.loc||'-')}</td><td class="qty ${p.qty<=0?'low':''}">${p.qty}</td></tr>`).join('');
 }
 function renderRiwayat(){
   const typeF = document.getElementById('filterType').value;
