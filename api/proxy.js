@@ -3,7 +3,7 @@
 // Karena permintaan ini dikirim dari server Vercel ke Google (server-to-server),
 // aturan CORS di browser tidak berlaku, jadi ini menghindari error "Failed to fetch".
 
-const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxPaKqBb0Hfl3XyoU2b-BNKWfU72jhXvE_-WJHJodBTioZwnRw0lgqKMV-oQcP0Y6We/exec';
+const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxPaKqBb0Hfl3XyoU2b-BNKWfU72jhXvE_-WJHJodBTioZwnRw0lgqKMV-oQcP0Y6We/exechttps://script.google.com/macros/s/AKfycbxgXp4-aq6ZrXhn4UsTqBxUmyRHsaKHnoqOQ4jsInbWcp5nUK847COwnLwBemoLoo2u/exec';
 
 module.exports = async (req, res) => {
   if (req.method !== 'POST') {
