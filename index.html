@@ -185,10 +185,12 @@ const UNIT_MODELS = [
 ];
 
 // --- URL Apps Script (backend/API) — link /exec dari deployment Apps Script kamu ---
-const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxgXp4-aq6ZrXhn4UsTqBxUmyRHsaKHnoqOQ4jsInbWcp5nUK847COwnLwBemoLoo2u/exec';
+const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyPYmWSmBrtfXxnDSuIt2TGjzYC-mHxj0PK6VlncLU6l9dUiwYb-W0q5XHw3U8wj0Nw/exec';
 
 let parts = [];
 let transactions = [];
+let riwayatTotal = 0;
+let riwayatShown = 0;
 let currentSheet = 'ALL';
 let ambilSelectedPartId = null;
 
@@ -247,6 +249,8 @@ async function loadData(){
     const data = await runScript('getAllData');
     parts = data.parts;
     transactions = data.transactions;
+    riwayatTotal = data.riwayatTotal || transactions.length;
+    riwayatShown = data.riwayatShown || transactions.length;
     render();
   }catch(e){
     showFatalError('Gagal memuat data dari Google Sheets: ' + (e.message||e));
@@ -330,7 +334,10 @@ function renderRiwayat(){
   list.sort((a,b)=>b.ts-a.ts);
   const el = document.getElementById('riwayatList');
   if(list.length===0){ el.innerHTML = `<div class="empty"><div class="big">🕘</div>Belum ada riwayat transaksi.</div>`; return; }
-  el.innerHTML = list.map(t=>`
+  const infoBar = (riwayatTotal > riwayatShown)
+    ? `<div class="tx-meta" style="padding:8px 4px;">Menampilkan ${riwayatShown} transaksi terbaru dari total ${riwayatTotal} transaksi (dibatasi supaya aplikasi tetap cepat).</div>`
+    : '';
+  el.innerHTML = infoBar + list.map(t=>`
     <div class="tx-row">
       <div>
         <div style="font-weight:600;font-size:13.5px;">${esc(t.desc)}</div>
