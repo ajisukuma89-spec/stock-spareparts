@@ -3,7 +3,7 @@
 // Karena permintaan ini dikirim dari server Vercel ke Google (server-to-server),
 // aturan CORS di browser tidak berlaku, jadi ini menghindari error "Failed to fetch".
 
-const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyPYmWSmBrtfXxnDSuIt2TGjzYC-mHxj0PK6VlncLU6l9dUiwYb-W0q5XHw3U8wj0Nw/exec';
+const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwcLvaZEcKgCqQllUi14U48MYEaoHclaGwYAgJH6UvB_ZI5WXjiMS1alKOp9DrdChG3/exec';
 
 function sleep(ms) { return new Promise(resolve => setTimeout(resolve, ms)); }
 
