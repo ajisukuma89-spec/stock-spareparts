@@ -5,35 +5,48 @@
 
 const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyPYmWSmBrtfXxnDSuIt2TGjzYC-mHxj0PK6VlncLU6l9dUiwYb-W0q5XHw3U8wj0Nw/exec';
 
+function sleep(ms) { return new Promise(resolve => setTimeout(resolve, ms)); }
+
+async function callAppsScript(body) {
+  const upstream = await fetch(APPS_SCRIPT_URL, {
+    method: 'POST',
+    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+    body: JSON.stringify(body)
+  });
+  const text = await upstream.text();
+  return JSON.parse(text); // sengaja dibiarkan throw kalau bukan JSON, ditangkap di pemanggil
+}
+
 module.exports = async (req, res) => {
   if (req.method !== 'POST') {
     res.status(405).json({ ok: false, error: 'Method tidak diizinkan' });
     return;
   }
 
-  try {
-    const upstream = await fetch(APPS_SCRIPT_URL, {
-      method: 'POST',
-      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-      body: JSON.stringify(req.body)
-    });
+  // Coba sampai 3x. Kegagalan non-JSON dari Apps Script sering bersifat SEMENTARA
+  // (rate-limit/quota Google), jadi retry singkat biasanya langsung berhasil.
+  const maxAttempts = 3;
+  let lastErrorSnippet = '';
 
-    const text = await upstream.text();
-    let data;
+  for (let attempt = 1; attempt <= maxAttempts; attempt++) {
     try {
-      data = JSON.parse(text);
-    } catch (parseErr) {
-      // Apps Script kadang balas HTML (halaman error/login) alih-alih JSON,
-      // biasanya karena deployment belum di-update atau bukan "Anyone" access.
-      res.status(502).json({
-        ok: false,
-        error: 'Respons dari Apps Script bukan JSON. Cek deployment Apps Script (Execute as: Me, Access: Anyone).'
-      });
+      const data = await callAppsScript(req.body);
+      res.status(200).json(data);
       return;
+    } catch (err) {
+      lastErrorSnippet = String(err.message || err).slice(0, 200);
+      if (attempt < maxAttempts) {
+        await sleep(attempt * 700); // tunggu makin lama tiap percobaan (700ms, lalu 1400ms)
+        continue;
+      }
     }
-
-    res.status(200).json(data);
-  } catch (err) {
-    res.status(500).json({ ok: false, error: 'Gagal menghubungi Apps Script: ' + (err.message || err) });
   }
+
+  res.status(502).json({
+    ok: false,
+    error: 'Apps Script tidak merespons dengan JSON setelah ' + maxAttempts + 'x percobaan. ' +
+           'Biasanya ini rate-limit/quota sementara dari Google — coba lagi dalam 1-2 menit. ' +
+           'Kalau terus terjadi, cek deployment Apps Script (Execute as: Me, Access: Anyone). ' +
+           '[detail: ' + lastErrorSnippet + ']'
+  });
 };
