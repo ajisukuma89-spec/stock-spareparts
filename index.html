@@ -44,7 +44,7 @@
   label{font-size:11.5px;color:var(--text);font-weight:600;text-transform:uppercase;letter-spacing:0.3px;}
   .field{margin-bottom:12px;}
   button.btn{cursor:pointer;border:none;border-radius:8px;padding:11px 16px;font-family:'Inter',sans-serif;font-weight:600;font-size:14px;}
-  button.btn:disabled{opacity:0.5;}
+  button.btn:disabled{opacity:0.5;cursor:not-allowed;}
   .btn-amber{background:var(--amber);color:#1A1A1A;}
   .btn-green{background:var(--green);color:#0E2A20;}
   .btn-red{background:var(--red);color:#2A0E0A;}
@@ -492,7 +492,8 @@ async function inputBarang(){
     try{ localStorage.setItem('stok_nama_terakhir', nama); }catch(e){}
     currentSheet = unit; render();
   }catch(e){ toast('Gagal: ' + (e.message||e)); }
-  btn.disabled=false; btn.textContent='Simpan Input Barang';
+  btn.textContent='Simpan Input Barang';
+  updateInputButtonState();
 }
 
 // --- Bantuan cari part (dipakai bareng tab Input & Ambil): cocokkan
@@ -523,12 +524,14 @@ function pickInputSuggestion(id){
   document.getElementById('in_pn').value = p.pn;
   document.getElementById('in_desc').value = p.desc;
   document.getElementById('in_matches').innerHTML='';
+  updateInputButtonState();
 }
 
 document.getElementById('ax_pn').addEventListener('input', function(e){
   const q = e.target.value.trim().toLowerCase();
   ambilSelectedPartId = null;
   document.getElementById('ax_found').innerHTML='';
+  updateAmbilButtonState();
   const matchesEl = document.getElementById('ax_matches');
   if(!q){ matchesEl.innerHTML=''; return; }
   const matches = parts.filter(p=>partMatchesQuery(p,q));
@@ -546,6 +549,7 @@ function selectAmbilPart(id){
   document.getElementById('ax_matches').innerHTML='';
   document.getElementById('ax_pn').value = p.pn;
   document.getElementById('ax_found').innerHTML = `<div class="found-card"><div class="pn mono">${esc(p.pn)}</div><div class="nm">${esc(p.desc)}</div><div class="stok">Stok saat ini: <strong>${p.qty}</strong>${p.loc ? ' · Lokasi: '+esc(p.loc) : ''}</div><span class="unit">🚜 ${esc(p.unit)}</span></div>`;
+  updateAmbilButtonState();
 }
 async function ambilBarang(){
   if(!ambilSelectedPartId){ toast('Pilih parts number yang valid dari daftar stok'); return; }
@@ -568,12 +572,15 @@ async function ambilBarang(){
     try{ localStorage.setItem('stok_nama_terakhir', nama); }catch(e){}
     currentSheet = part.unit; render();
   }catch(e){ toast('Gagal: ' + (e.message||e)); }
-  btn.disabled=false; btn.textContent='Simpan Ambil Barang';
+  btn.textContent='Simpan Ambil Barang';
+  updateAmbilButtonState();
 }
 
-// --- Submit pakai tombol Enter di keyboard (selain klik tombol Simpan) ---
-// Syaratnya: SEMUA kolom wajib di tab itu sudah terisi. Kalau belum,
-// tombol Enter tidak melakukan apa-apa (tidak submit form kosong/setengah).
+// --- Kolom tab Input & Ambil diurutkan sesuai urutan isian di layar.
+// Enter di kolom mana pun akan PINDAH ke kolom berikutnya (seperti Tab),
+// jadi tidak perlu menggerakkan kursor tiap ganti kolom. Enter di kolom
+// TERAKHIR baru akan menyimpan data -- itu pun hanya kalau semua kolom
+// wajib sudah terisi.
 function isInputFormReady(){
   const pn = document.getElementById('in_pn').value.trim();
   const desc = document.getElementById('in_desc').value.trim();
@@ -587,19 +594,51 @@ function isAmbilFormReady(){
   const nama = document.getElementById('ax_nama').value.trim();
   return !!ambilSelectedPartId && qty > 0 && !!note && !!nama;
 }
-function enableEnterToSubmit(sectionId, isReadyFn, submitFn){
-  document.querySelectorAll('#'+sectionId+' input, #'+sectionId+' select').forEach(el=>{
+const INPUT_FIELD_ORDER = ['in_unit','in_pn','in_desc','in_loc','in_qty','in_nama'];
+const AMBIL_FIELD_ORDER = ['ax_pn','ax_qty','ax_note','ax_nama'];
+
+function setupEnterNavigation(order, isReadyFn, submitFn){
+  order.forEach((id, idx)=>{
+    const el = document.getElementById(id);
     el.addEventListener('keydown', (e)=>{
       if(e.key !== 'Enter') return;
       e.preventDefault(); // supaya Enter tidak reload halaman/submit form browser
-      if(isReadyFn()) submitFn();
-      // kalau belum lengkap, Enter diabaikan begitu saja -- user tetap harus
-      // melengkapi kolom yang kosong dulu.
+      const nextId = order[idx+1];
+      if(nextId){
+        const nextEl = document.getElementById(nextId);
+        nextEl.focus();
+        if(typeof nextEl.select === 'function') nextEl.select();
+      } else if(isReadyFn()){
+        submitFn();
+      }
+      // kalau di kolom terakhir tapi belum lengkap, Enter diabaikan --
+      // user tetap harus melengkapi kolom yang kosong dulu.
     });
   });
 }
-enableEnterToSubmit('tab-input', isInputFormReady, inputBarang);
-enableEnterToSubmit('tab-ambil', isAmbilFormReady, ambilBarang);
+setupEnterNavigation(INPUT_FIELD_ORDER, isInputFormReady, inputBarang);
+setupEnterNavigation(AMBIL_FIELD_ORDER, isAmbilFormReady, ambilBarang);
+
+// --- Tombol Simpan hidup (jelas & bisa diklik) hanya kalau semua kolom
+// wajib sudah terisi -- dicek ulang tiap kali ada perubahan di kolom mana pun.
+function updateInputButtonState(){
+  document.getElementById('btnInput').disabled = !isInputFormReady();
+}
+function updateAmbilButtonState(){
+  document.getElementById('btnAmbil').disabled = !isAmbilFormReady();
+}
+function bindLiveButtonState(order, updateFn){
+  order.forEach(id=>{
+    const el = document.getElementById(id);
+    el.addEventListener('input', updateFn);
+    el.addEventListener('change', updateFn);
+  });
+}
+bindLiveButtonState(INPUT_FIELD_ORDER, updateInputButtonState);
+bindLiveButtonState(AMBIL_FIELD_ORDER, updateAmbilButtonState);
+// Kondisi awal saat halaman baru dibuka: kolom masih kosong -> tombol nonaktif dulu
+updateInputButtonState();
+updateAmbilButtonState();
 
 init();
 </script>
