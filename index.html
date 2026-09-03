@@ -174,7 +174,8 @@
         <div class="field"><label>Parts Number</label><input id="in_pn" class="mono" placeholder="cth: 07040-11209"></div>
         <div id="in_matches"></div>
         <div class="field"><label>Parts Description</label><input id="in_desc" class="mono" placeholder="cth: Plug final drive"></div>
-        <div class="field"><label>Lokasi Penyimpanan</label><input id="in_loc" class="mono" placeholder="cth: Rak abu, Lemari hijau, Laydown"></div>
+        <div class="field"><label>Lokasi Penyimpanan</label><input id="in_loc" class="mono" list="loc_datalist" autocomplete="off" placeholder="cth: Rak abu, Lemari hijau, Laydown"></div>
+        <datalist id="loc_datalist"></datalist>
         <div class="field"><label>Quantity</label><input id="in_qty" type="number" min="1" class="mono" placeholder="0"></div>
         <div class="field"><label>Nama Penginput</label><input id="in_nama" class="mono" placeholder="Masukan nama anda"></div>
         <button class="btn btn-green btn-block" id="btnInput" onclick="inputBarang()">Simpan Input Barang</button>
@@ -455,13 +456,12 @@ function renderStats(){
   document.getElementById('statQty').textContent = parts.reduce((s,p)=>s+Number(p.qty),0);
   document.getElementById('statLow').textContent = parts.filter(p=>Number(p.qty)<=0).length;
 }
-function populateLocationFilter(){
-  const sel = document.getElementById('stok_loc_filter');
-  const prevValue = sel.value;
-
+function getUniqueLocations(){
   // Kumpulkan lokasi unik, tanpa peduli besar-kecil huruf.
   // Key pakai versi lowercase (buat pembanding), tapi yang ditampilkan
   // tetap pakai penulisan asli yang pertama kali ketemu di data.
+  // Dipakai bareng oleh filter lokasi di tab Stok DAN saran datalist
+  // di kolom "Lokasi Penyimpanan" pada form Input Barang.
   const map = new Map();
   parts.forEach(p=>{
     const raw = (p.loc || '').trim();
@@ -469,13 +469,23 @@ function populateLocationFilter(){
     const key = raw.toLowerCase();
     if(!map.has(key)) map.set(key, raw);
   });
-
   const sortedKeys = [...map.keys()].sort((a,b)=>map.get(a).localeCompare(map.get(b), 'id'));
+  return sortedKeys.map(k=>map.get(k));
+}
+function populateLocationFilter(){
+  const sel = document.getElementById('stok_loc_filter');
+  const prevValue = sel.value;
+
+  const locations = getUniqueLocations();
   sel.innerHTML = '<option value="">📍 Semua Lokasi</option>' +
-    sortedKeys.map(k=>`<option value="${esc(k)}">${esc(map.get(k))}</option>`).join('');
+    locations.map(loc=>`<option value="${esc(loc.toLowerCase())}">${esc(loc)}</option>`).join('');
 
   // Pertahankan pilihan lokasi sebelumnya kalau masih ada di data terbaru
-  if(sortedKeys.includes(prevValue)) sel.value = prevValue;
+  if(locations.some(loc=>loc.toLowerCase()===prevValue)) sel.value = prevValue;
+
+  // Isi ulang saran datalist buat kolom "Lokasi Penyimpanan" di form Input Barang
+  document.getElementById('loc_datalist').innerHTML =
+    locations.map(loc=>`<option value="${esc(loc)}">`).join('');
 }
 document.getElementById('stok_loc_filter').addEventListener('change', ()=>{ stokPage = 1; renderStokSheet(); });
 
