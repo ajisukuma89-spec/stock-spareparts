@@ -1,4 +1,5 @@
 
+
 <!DOCTYPE html>
 <html lang="id">
 <head>
@@ -49,6 +50,8 @@
   .stat .num{font-family:'Oswald',sans-serif;font-size:20px;font-weight:600;}
   .stat .lbl{font-size:10.5px;color:var(--text-muted);margin-top:2px;text-transform:uppercase;letter-spacing:0.4px;}
   .stat.warn .num{color:var(--red);}
+  .stat-clickable{cursor:pointer;}
+  .stat-clickable:active{opacity:.8;}
   nav.tabs{display:flex;gap:4px;padding:0 16px 12px;overflow-x:auto;}
   nav.tabs button{flex:1;background:var(--surface);border:1px solid var(--border);color:var(--text-muted);padding:10px 6px;border-radius:8px;font-size:11.8px;font-weight:600;font-family:'Inter',sans-serif;cursor:pointer;white-space:nowrap;}
   nav.tabs button.active{background:var(--amber);color:#1A1A1A;border-color:var(--amber);}
@@ -126,7 +129,7 @@
   <div class="stats">
     <div class="stat"><div class="num" id="statTotal">0</div><div class="lbl">Jenis Part</div></div>
     <div class="stat"><div class="num" id="statQty">0</div><div class="lbl">Total Qty</div></div>
-    <div class="stat warn"><div class="num" id="statLow">0</div><div class="lbl">Stok Kosong</div></div>
+    <div class="stat warn stat-clickable" id="statLowCard" role="button" tabindex="0" title="Lihat daftar parts yang stoknya kosong"><div class="num" id="statLow">0</div><div class="lbl">Stok Kosong</div></div>
   </div>
   <nav class="tabs">
     <button data-tab="stok" class="active">📦 Stok</button>
@@ -178,6 +181,7 @@
       </div>
     </section>
     <section id="tab-riwayat" style="display:none;">
+      <div class="field"><input id="riwayat_search" placeholder="🔍 Cari parts number atau nama part..."></div>
       <div class="filter-row">
         <select id="filterType"><option value="">Semua Jenis</option><option value="masuk">Input</option><option value="keluar">Ambil</option></select>
         <select id="filterUnit"><option value="">Semua Unit</option></select>
@@ -223,14 +227,16 @@ document.getElementById('themeToggle').addEventListener('click', toggleTheme);
 updateThemeIcon();
 
 // --- Tab switching: didaftarkan paling awal, tidak bergantung apa pun ---
+// Dijadikan fungsi terpisah (bukan cuma di dalam listener klik tab) supaya
+// bisa dipanggil dari tempat lain juga, mis. saat kartu "Stok Kosong" diklik.
+function switchTab(tabName){
+  document.querySelectorAll('nav.tabs button').forEach(b=>b.classList.toggle('active', b.dataset.tab===tabName));
+  document.querySelectorAll('main > section').forEach(s=>s.style.display='none');
+  document.getElementById('tab-'+tabName).style.display='block';
+}
 try{
   document.querySelectorAll('nav.tabs button').forEach(btn=>{
-    btn.addEventListener('click', ()=>{
-      document.querySelectorAll('nav.tabs button').forEach(b=>b.classList.remove('active'));
-      btn.classList.add('active');
-      document.querySelectorAll('main > section').forEach(s=>s.style.display='none');
-      document.getElementById('tab-'+btn.dataset.tab).style.display='block';
-    });
+    btn.addEventListener('click', ()=>switchTab(btn.dataset.tab));
   });
 }catch(e){ showFatalError('Gagal pasang tab: ' + e.message); }
 
@@ -269,6 +275,10 @@ let riwayatTotal = 0;
 let riwayatShown = 0;
 let currentSheet = 'ALL';
 let ambilSelectedPartId = null;
+// Toggle "tampilkan stok kosong saja" di tab Stok -- bisa dinyalakan lewat
+// tombol ⚠️ Kosong saja, ATAU otomatis dinyalakan saat kartu statistik
+// "Stok Kosong" di header diklik.
+let stokKosongOnly = false;
 
 // --- Pagination: Stok (dihitung di sisi browser karena semua data stok
 // sudah kepanggil sekali lewat getAllData) ---
@@ -360,6 +370,7 @@ async function loadData(){
 async function loadRiwayatPage(page){
   const typeF = document.getElementById('filterType').value;
   const unitF = document.getElementById('filterUnit').value;
+  const searchF = document.getElementById('riwayat_search').value.trim();
   const from = (page - 1) * RIWAYAT_PAGE_SIZE;
   const to = from + RIWAYAT_PAGE_SIZE - 1;
 
@@ -369,6 +380,14 @@ async function loadRiwayatPage(page){
     .range(from, to);
   if (typeF) query = query.eq('jenis', typeF);
   if (unitF) query = query.eq('unit_model', unitF);
+  if (searchF) {
+    // Koma & persen dibuang dulu karena punya arti khusus di sintaks filter
+    // .or()/ilike PostgREST -- kalau ikut dikirim apa adanya bisa merusak query.
+    const safe = searchF.replace(/[%,]/g, ' ').trim();
+    if (safe) {
+      query = query.or(`parts_number.ilike.%${safe}%,parts_description.ilike.%${safe}%`);
+    }
+  }
 
   try{
     const { data, error, count } = await query;
@@ -413,7 +432,7 @@ function buildSelectors(){
   const btnSemua = document.createElement('button');
   btnSemua.textContent = '📦 Semua Unit'; btnSemua.dataset.code = 'ALL';
   if(currentSheet==='ALL') btnSemua.classList.add('active');
-  btnSemua.onclick = ()=>{ currentSheet = 'ALL'; stokPage = 1; renderStokSheet(); };
+  btnSemua.onclick = ()=>{ currentSheet = 'ALL'; stokKosongOnly = false; stokPage = 1; renderStokSheet(); };
   pillsSemua.appendChild(btnSemua);
 
   const pillsExc = document.getElementById('pillsExcavator');
@@ -422,7 +441,7 @@ function buildSelectors(){
     const btn = document.createElement('button');
     btn.textContent = u.code; btn.dataset.code = u.code;
     if(u.code===currentSheet) btn.classList.add('active');
-    btn.onclick = ()=>{ currentSheet = u.code; stokPage = 1; renderStokSheet(); };
+    btn.onclick = ()=>{ currentSheet = u.code; stokKosongOnly = false; stokPage = 1; renderStokSheet(); };
     (u.cat==='Excavator'?pillsExc:pillsBull).appendChild(btn);
   });
 }
@@ -471,6 +490,13 @@ function renderStokSheet(){
     rows = rows.filter(p=>p.pn.toLowerCase().includes(q) || p.desc.toLowerCase().includes(q));
   }
 
+  // Filter "stok kosong saja" -- aktif lewat tombol ⚠️ Kosong saja di tab Stok,
+  // atau otomatis lewat klik kartu statistik "Stok Kosong". Diterapkan di atas
+  // hasil unit+search di atas, jadi tetap bisa dikombinasikan dengan keduanya.
+  if(stokKosongOnly){
+    rows = rows.filter(p=>Number(p.qty)<=0);
+  }
+
   // Filter lokasi diterapkan DI ATAS hasil filter unit/pencarian di atas,
   // jadi bisa dikombinasikan (mis. cari "filter oli" DAN lokasi "Rak Abu" sekaligus).
   const locFilter = document.getElementById('stok_loc_filter').value;
@@ -481,9 +507,15 @@ function renderStokSheet(){
   if(rows.length===0){
     tbody.innerHTML='';
     const locLabel = locFilter ? ` di lokasi "<strong>${esc(document.getElementById('stok_loc_filter').selectedOptions[0].textContent)}</strong>"` : '';
-    const msg = q
-      ? `Tidak ada parts number/nama yang cocok dengan "<strong>${esc(q)}</strong>"${locLabel}.`
-      : `Belum ada data sparepart untuk <strong>${esc(currentSheet)}</strong>${locLabel}.`;
+    const kosongLabel = stokKosongOnly ? ' (stok kosong)' : '';
+    let msg;
+    if(q){
+      msg = `Tidak ada parts number/nama yang cocok dengan "<strong>${esc(q)}</strong>"${locLabel}${kosongLabel}.`;
+    } else if(stokKosongOnly){
+      msg = `Tidak ada stok kosong untuk <strong>${esc(currentSheet)}</strong>${locLabel}. Semua part masih tersedia 🎉`;
+    } else {
+      msg = `Belum ada data sparepart untuk <strong>${esc(currentSheet)}</strong>${locLabel}.`;
+    }
     emptyEl.innerHTML = `<div class="empty"><div class="big">📭</div>${msg}</div>`;
     document.getElementById('stokPagination').innerHTML = '';
     return;
@@ -506,6 +538,26 @@ function renderStokSheet(){
 }
 document.getElementById('stok_search').addEventListener('input', ()=>{ stokPage = 1; renderStokSheet(); });
 
+// Kartu statistik "Stok Kosong" di header -- diklik langsung pindah ke tab
+// Stok, reset search/unit/lokasi ke "semua", lalu nyalakan filter kosong,
+// supaya user langsung lihat SEMUA part yang qty-nya 0 tanpa scroll-scroll.
+// Filter ini otomatis mati lagi begitu user klik salah satu pill unit
+// (lihat btnSemua.onclick / btn.onclick di buildSelectors()).
+function showStokKosong(){
+  stokKosongOnly = true;
+  currentSheet = 'ALL';
+  document.getElementById('stok_search').value = '';
+  document.getElementById('stok_loc_filter').value = '';
+  stokPage = 1;
+  switchTab('stok');
+  renderStokSheet();
+}
+const statLowCard = document.getElementById('statLowCard');
+statLowCard.addEventListener('click', showStokKosong);
+statLowCard.addEventListener('keydown', (e)=>{
+  if(e.key==='Enter' || e.key===' '){ e.preventDefault(); showStokKosong(); }
+});
+
 // Kontrol Prev/Next generik, dipakai untuk tab Stok maupun tab Riwayat
 function renderPaginationControls(containerId, page, totalPages, totalCount, unitLabel, onChange){
   const el = document.getElementById(containerId);
@@ -527,7 +579,11 @@ function renderRiwayat(){
   // di sini, itu sudah dikerjakan oleh server.
   const el = document.getElementById('riwayatList');
   if(transactions.length===0){
-    el.innerHTML = `<div class="empty"><div class="big">🕘</div>Belum ada riwayat transaksi.</div>`;
+    const q = document.getElementById('riwayat_search').value.trim();
+    const msg = q
+      ? `Tidak ada riwayat parts number/nama yang cocok dengan "<strong>${esc(q)}</strong>".`
+      : `Belum ada riwayat transaksi.`;
+    el.innerHTML = `<div class="empty"><div class="big">🕘</div>${msg}</div>`;
     document.getElementById('riwayatPagination').innerHTML = '';
     return;
   }
@@ -553,6 +609,15 @@ function renderRiwayat(){
 }
 document.getElementById('filterType').addEventListener('change', ()=>loadRiwayatPage(1));
 document.getElementById('filterUnit').addEventListener('change', ()=>loadRiwayatPage(1));
+
+// Debounce kecil (300ms) khusus search riwayat -- beda dari search stok yang
+// filter langsung di browser, search riwayat ini nge-query ke Supabase tiap
+// kali dipanggil, jadi kalau tanpa jeda bisa nembak banyak request tiap ketik.
+let riwayatSearchDebounce = null;
+document.getElementById('riwayat_search').addEventListener('input', ()=>{
+  clearTimeout(riwayatSearchDebounce);
+  riwayatSearchDebounce = setTimeout(()=>loadRiwayatPage(1), 300);
+});
 
 async function inputBarang(){
   const unit = document.getElementById('in_unit').value;
