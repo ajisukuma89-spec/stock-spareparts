@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="id">
 <head>
@@ -1068,4 +1069,104 @@ setupEnterNavigation(AMBIL_FIELD_ORDER, isAmbilFormReady, ambilBarang);
 // --- Tombol Simpan hidup (jelas & bisa diklik) hanya kalau semua kolom
 // wajib sudah terisi -- dicek ulang tiap kali ada perubahan di kolom mana pun.
 function updateInputButtonState(){
+  document.getElementById('btnInput').disabled = !isInputFormReady();
+}
+function updateAmbilButtonState(){
+  document.getElementById('btnAmbil').disabled = !isAmbilFormReady();
+}
+function bindLiveButtonState(order, updateFn){
+  order.forEach(id=>{
+    const el = document.getElementById(id);
+    el.addEventListener('input', updateFn);
+    el.addEventListener('change', updateFn);
+  });
+}
+bindLiveButtonState(INPUT_FIELD_ORDER, updateInputButtonState);
+bindLiveButtonState(AMBIL_FIELD_ORDER, updateAmbilButtonState);
+// Kondisi awal saat halaman baru dibuka: kolom masih kosong -> tombol nonaktif dulu
+updateInputButtonState();
+updateAmbilButtonState();
 
+// --- Edit Data Stok (admin) ---
+function openEditPart(id){
+  const p = parts.find(x=>String(x.id)===String(id));
+  if(!p) return;
+  document.getElementById('ep_unit').value = p.unit;
+  document.getElementById('ep_pn').value = p.pn;
+  document.getElementById('ep_desc').value = p.desc;
+  document.getElementById('ep_loc').value = p.loc || '';
+  document.getElementById('ep_status').value = (p.status || 'RFU').toUpperCase();
+  document.getElementById('ep_qty').value = p.qty;
+  document.getElementById('ep_remarks').value = p.remarks || '';
+  document.getElementById('editPartModal').dataset.editId = id;
+  document.getElementById('editPartError').textContent = '';
+  openModal('editPartModal');
+}
+async function saveEditPart(){
+  const id = document.getElementById('editPartModal').dataset.editId;
+  const unit = document.getElementById('ep_unit').value;
+  const pn = document.getElementById('ep_pn').value.trim();
+  const desc = document.getElementById('ep_desc').value.trim();
+  const loc = document.getElementById('ep_loc').value.trim();
+  const status = document.getElementById('ep_status').value;
+  const qty = Number(document.getElementById('ep_qty').value);
+  const remarks = document.getElementById('ep_remarks').value.trim();
+  const errEl = document.getElementById('editPartError');
+  if(!pn || !desc){ errEl.textContent = 'Parts Number dan Description wajib diisi.'; return; }
+  const btn = document.getElementById('btnSaveEditPart');
+  btn.disabled = true; btn.textContent = 'Menyimpan...';
+  try{
+    const data = await runScript('updatePart', id, unit, pn, desc, loc, qty, status, remarks);
+    parts = data.parts; transactions = data.transactions;
+    closeModal('editPartModal');
+    toast('Data stok berhasil diperbarui');
+    render();
+  }catch(e){
+    errEl.textContent = e.message || 'Gagal menyimpan.';
+  }finally{
+    btn.disabled = false; btn.textContent = 'Simpan';
+  }
+}
+
+// --- Edit Riwayat (admin) -- cuma field non-stok (unit/pn/desc/keterangan/nama).
+// Jenis & Qty transaksi sengaja tidak bisa diedit supaya stok saat ini
+// tidak jadi tidak sinkron dengan catatan riwayatnya.
+function openEditRiwayat(id){
+  const t = transactions.find(x=>String(x.id)===String(id));
+  if(!t) return;
+  document.getElementById('er_unit').value = t.unit;
+  document.getElementById('er_pn').value = t.pn;
+  document.getElementById('er_desc').value = t.desc;
+  document.getElementById('er_note').value = t.note || '';
+  document.getElementById('er_nama').value = t.nama || '';
+  document.getElementById('editRiwayatModal').dataset.editId = id;
+  document.getElementById('editRiwayatError').textContent = '';
+  openModal('editRiwayatModal');
+}
+async function saveEditRiwayat(){
+  const id = document.getElementById('editRiwayatModal').dataset.editId;
+  const unit = document.getElementById('er_unit').value;
+  const pn = document.getElementById('er_pn').value.trim();
+  const desc = document.getElementById('er_desc').value.trim();
+  const note = document.getElementById('er_note').value.trim();
+  const nama = document.getElementById('er_nama').value.trim();
+  const errEl = document.getElementById('editRiwayatError');
+  if(!pn || !desc){ errEl.textContent = 'Parts Number dan Description wajib diisi.'; return; }
+  const btn = document.getElementById('btnSaveEditRiwayat');
+  btn.disabled = true; btn.textContent = 'Menyimpan...';
+  try{
+    await runScript('updateRiwayat', id, unit, pn, desc, note, nama);
+    closeModal('editRiwayatModal');
+    toast('Riwayat berhasil diperbarui');
+    loadRiwayatPage(riwayatPage);
+  }catch(e){
+    errEl.textContent = e.message || 'Gagal menyimpan.';
+  }finally{
+    btn.disabled = false; btn.textContent = 'Simpan';
+  }
+}
+
+init();
+</script>
+</body>
+  </html>
