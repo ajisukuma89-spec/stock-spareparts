@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="id">
 <head>
@@ -17,6 +16,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@500;600;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <style>
   :root{
     --bg:#14171B; --surface:#1A1E23; --surface-2:#20242A; --border:#2B2F36;
@@ -110,11 +110,13 @@
   .sheet-pills button.active{background:var(--amber);color:var(--on-amber);border-color:var(--amber);}
   .cat-label{font-size:11px;color:var(--text-muted);margin:12px 0 5px;font-weight:600;}
 
+  #tab-stok .card{overflow-x:auto;}
   table{width:100%;border-collapse:collapse;font-size:13px;}
   th{text-align:left;color:var(--text-muted);font-size:11px;font-weight:600;padding:6px;border-bottom:1px solid var(--border-strong);}
   td{padding:9px 6px;border-bottom:1px solid var(--border);}
   tr:last-child td{border-bottom:none;}
-  td.pn{font-family:'JetBrains Mono',monospace;font-size:11.5px;color:var(--blue);}
+  td.pn{font-family:'JetBrains Mono',monospace;font-size:11.5px;color:var(--blue);white-space:nowrap;}
+  td.unit-col,th.unit-col{white-space:nowrap;}
   td.qty{font-family:'Oswald',sans-serif;font-weight:600;text-align:right;font-variant-numeric:tabular-nums;}
   td.loc{color:var(--text);font-weight:500;font-size:13px;}
   td.qty.low{color:var(--red);}
@@ -228,14 +230,20 @@
           <option value="NOT RFU">NOT RFU</option>
         </select>
       </div>
-      <div class="sheet-pills" id="pillsSemua"></div>
+      <div style="display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:10px;margin-bottom:12px;">
+        <div class="sheet-pills" id="pillsSemua" style="margin-bottom:0;"></div>
+        <button type="button" id="btnExportStok" class="btn btn-outline" style="display:flex;align-items:center;gap:6px;padding:8px 14px;font-size:12.5px;flex-shrink:0;">
+          <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12"/><path d="m8 11 4 4 4-4"/><path d="M4 21h16"/></svg>
+          Export Excel
+        </button>
+      </div>
       <div class="cat-label">Excavator</div>
       <div class="sheet-pills" id="pillsExcavator"></div>
       <div class="cat-label">Bulldozer</div>
       <div class="sheet-pills" id="pillsBulldozer"></div>
       <div class="card">
         <table>
-          <thead><tr><th>No</th><th>Parts Number</th><th>Parts Description</th><th>Unit</th><th>Status</th><th>Lokasi</th><th style="text-align:right;">Qty</th><th>Keterangan</th><th class="actions-col" id="stokActionsHead" style="display:none;">Aksi</th></tr></thead>
+          <thead><tr><th>No</th><th>Parts Number</th><th>Parts Description</th><th class="unit-col">Unit</th><th>Status</th><th>Lokasi</th><th style="text-align:right;">Qty</th><th>Keterangan</th><th class="actions-col" id="stokActionsHead" style="display:none;">Aksi</th></tr></thead>
           <tbody id="stokTableBody"></tbody>
         </table>
         <div id="stokEmpty"></div>
@@ -400,14 +408,14 @@ try{
 
 // --- Daftar unit model: hardcode di sisi client, tidak perlu tunggu server ---
 const UNIT_MODELS = [
-  {cat:'Excavator', code:'PC2000-11'},
-  {cat:'Excavator', code:'PC1250-11'},
+  {cat:'Excavator', code:'PC2000-11R'},
+  {cat:'Excavator', code:'PC1250SP-11'},
   {cat:'Excavator', code:'CAT395'},
-  {cat:'Excavator', code:'PC500'},
-  {cat:'Excavator', code:'PC210'},
-  {cat:'Bulldozer', code:'D375'},
-  {cat:'Bulldozer', code:'D155'},
-  {cat:'Bulldozer', code:'D85'}
+  {cat:'Excavator', code:'PC500LC-10R'},
+  {cat:'Excavator', code:'PC210-10MO'},
+  {cat:'Bulldozer', code:'D375A-6R'},
+  {cat:'Bulldozer', code:'D155A-6R'},
+  {cat:'Bulldozer', code:'D85ESS-2'}
 ];
 
 // --- Koneksi Supabase (backend/database baru, pengganti Apps Script + Google Sheets) ---
@@ -765,26 +773,15 @@ function populateLocationFilter(){
 document.getElementById('stok_loc_filter').addEventListener('change', ()=>{ stokPage = 1; renderStokSheet(); });
 document.getElementById('stok_status_filter').addEventListener('change', ()=>{ stokPage = 1; renderStokSheet(); });
 
-function renderStokSheet(){
-  document.querySelectorAll('.sheet-pills button').forEach(b=>b.classList.toggle('active', b.dataset.code===currentSheet));
+function getFilteredStokRows(){
   const q = document.getElementById('stok_search').value.trim().toLowerCase();
-  const tbody = document.getElementById('stokTableBody');
-  const emptyEl = document.getElementById('stokEmpty');
-
   let rows = currentSheet==='ALL' ? [...parts] : parts.filter(p=>p.unit===currentSheet);
   if(q){
     rows = rows.filter(p=>p.pn.toLowerCase().includes(q) || p.desc.toLowerCase().includes(q));
   }
-
-  // Filter "stok kosong saja" -- aktif lewat tombol ⚠️ Kosong saja di tab Stok,
-  // atau otomatis lewat klik kartu statistik "Stok Kosong". Diterapkan di atas
-  // hasil unit+search di atas, jadi tetap bisa dikombinasikan dengan keduanya.
   if(stokKosongOnly){
     rows = rows.filter(p=>Number(p.qty)<=0);
   }
-
-  // Filter lokasi diterapkan DI ATAS hasil filter unit/pencarian di atas,
-  // jadi bisa dikombinasikan (mis. cari "filter oli" DAN lokasi "Rak Abu" sekaligus).
   const locFilter = document.getElementById('stok_loc_filter').value;
   if(locFilter){
     rows = rows.filter(p => (p.loc || '').trim().toLowerCase() === locFilter);
@@ -793,6 +790,17 @@ function renderStokSheet(){
   if(statusFilter){
     rows = rows.filter(p => (p.status || 'RFU').toUpperCase() === statusFilter);
   }
+  return rows;
+}
+function renderStokSheet(){
+  document.querySelectorAll('.sheet-pills button').forEach(b=>b.classList.toggle('active', b.dataset.code===currentSheet));
+  const q = document.getElementById('stok_search').value.trim().toLowerCase();
+  const tbody = document.getElementById('stokTableBody');
+  const emptyEl = document.getElementById('stokEmpty');
+
+  let rows = getFilteredStokRows();
+  const locFilter = document.getElementById('stok_loc_filter').value;
+  const statusFilter = document.getElementById('stok_status_filter').value;
 
   if(rows.length===0){
     tbody.innerHTML='';
@@ -819,7 +827,7 @@ function renderStokSheet(){
   const startIdx = (stokPage - 1) * STOK_PAGE_SIZE;
   const pageRows = rows.slice(startIdx, startIdx + STOK_PAGE_SIZE);
 
-  tbody.innerHTML = pageRows.map((p,i)=>`<tr><td>${startIdx+i+1}</td><td class="pn">${esc(p.pn)}</td><td>${esc(p.desc)}</td><td>${esc(p.unit)}</td><td>${statusBadge(p.status)}</td><td class="loc">${esc(p.loc||'-')}</td><td class="qty ${p.qty<=0?'low':''}">${p.qty}</td><td style="color:var(--text-muted);font-size:12.5px;">${esc(p.remarks||'-')}</td>${isAdmin?`<td class="actions-col"><button type="button" class="edit-btn" onclick="openEditPart('${p.id}')">Edit</button></td>`:''}</tr>`).join('');
+  tbody.innerHTML = pageRows.map((p,i)=>`<tr><td>${startIdx+i+1}</td><td class="pn">${esc(p.pn)}</td><td>${esc(p.desc)}</td><td class="unit-col">${esc(p.unit)}</td><td>${statusBadge(p.status)}</td><td class="loc">${esc(p.loc||'-')}</td><td class="qty ${p.qty<=0?'low':''}">${p.qty}</td><td style="color:var(--text-muted);font-size:12.5px;">${esc(p.remarks||'-')}</td>${isAdmin?`<td class="actions-col"><button type="button" class="edit-btn" onclick="openEditPart('${p.id}')">Edit</button></td>`:''}</tr>`).join('');
 
   renderPaginationControls('stokPagination', stokPage, totalPages, rows.length, 'item', (newPage)=>{
     stokPage = newPage;
@@ -827,6 +835,38 @@ function renderStokSheet(){
   });
 }
 document.getElementById('stok_search').addEventListener('input', ()=>{ stokPage = 1; renderStokSheet(); });
+
+function exportStokExcel(){
+  const rows = getFilteredStokRows()
+    .slice()
+    .sort((a,b) => a.unit.localeCompare(b.unit, 'id', {numeric:true}) || a.pn.localeCompare(b.pn, 'id', {numeric:true}));
+  if(rows.length===0){ toast('Tidak ada data untuk diexport'); return; }
+
+  const dataForSheet = rows.map((p,i)=>({
+    'No': i+1,
+    'Parts Number': p.pn,
+    'Parts Description': p.desc,
+    'Unit': p.unit,
+    'Status': p.status || 'RFU',
+    'Lokasi': p.loc || '-',
+    'Qty': Number(p.qty),
+    'Keterangan': p.remarks || '-'
+  }));
+
+  const ws = XLSX.utils.json_to_sheet(dataForSheet);
+  ws['!cols'] = [
+    { wch: 5 }, { wch: 20 }, { wch: 34 }, { wch: 12 },
+    { wch: 10 }, { wch: 26 }, { wch: 8 }, { wch: 22 }
+  ];
+
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, 'Stok');
+
+  const unitLabel = currentSheet === 'ALL' ? 'semua-unit' : currentSheet.toLowerCase().replace(/\s+/g, '-');
+  const tanggal = new Date().toISOString().slice(0,10);
+  XLSX.writeFile(wb, `stok-${unitLabel}-${tanggal}.xlsx`);
+}
+document.getElementById('btnExportStok').addEventListener('click', exportStokExcel);
 
 // Kartu statistik "Stok Kosong" di header -- diklik langsung pindah ke tab
 // Stok, reset search/unit/lokasi ke "semua", lalu nyalakan filter kosong,
