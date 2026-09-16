@@ -57,8 +57,8 @@
   .login-btn.on{background:var(--amber);color:var(--on-amber);border-color:var(--amber);}
 
   /* ---------- Stat strip (satu bilah, dipisah garis tipis -- bukan tiga kotak identik) ---------- */
-  .stats{display:grid;grid-template-columns:repeat(3,1fr);padding:14px 16px 12px;}
-  .stat{padding:0 14px;border-left:1px solid var(--border);}
+  .stats{display:grid;grid-template-columns:repeat(2,1fr);padding:14px 16px 12px;}
+  .stat{padding:0 14px;border-left:1px solid var(--border);text-align:center;}
   .stat:first-child{border-left:none;padding-left:0;}
   .stat .num{font-family:'Oswald',sans-serif;font-size:22px;font-weight:600;font-variant-numeric:tabular-nums;line-height:1;}
   .stat .lbl{font-size:11px;color:var(--text-muted);margin-top:4px;font-weight:500;}
@@ -68,10 +68,10 @@
 
   /* ---------- Tabs: garis bawah aktif, bukan kotak terpisah ---------- */
   nav.tabs{display:flex;gap:2px;padding:2px 16px 0;overflow-x:auto;border-bottom:1px solid var(--border);}
-  nav.tabs button{flex:1;display:flex;align-items:center;justify-content:center;gap:6px;
+  nav.tabs button{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;
     background:transparent;border:none;border-bottom:2px solid transparent;color:var(--text-muted);
-    padding:11px 6px 9px;font-size:12px;font-weight:600;font-family:'Inter',sans-serif;cursor:pointer;white-space:nowrap;}
-  nav.tabs button svg{width:15px;height:15px;flex-shrink:0;opacity:.85;}
+    padding:9px 4px 8px;font-size:10.5px;font-weight:600;font-family:'Inter',sans-serif;cursor:pointer;white-space:nowrap;}
+  nav.tabs button svg{width:18px;height:18px;flex-shrink:0;opacity:.85;}
   nav.tabs button.active{color:var(--amber);border-bottom-color:var(--amber);}
   nav.tabs button.active svg{opacity:1;}
 
@@ -142,8 +142,8 @@
     #tab-stok td.loc::before{content:"·";margin-right:8px;color:var(--border-strong);}
     #tab-stok td.qty{order:6;margin-left:auto;font-size:15px;}                  /* Qty */
     #tab-stok td:nth-child(8){order:7;flex-basis:100%;color:var(--text-muted);font-size:12px;margin-top:3px;} /* Keterangan */
-    #tab-stok td.actions-col{order:8;flex-basis:100%;margin-top:7px;}
-    #tab-stok td.actions-col .edit-btn{width:100%;}
+    #tab-stok td.actions-col{order:8;flex-basis:100%;margin-top:7px;display:flex;gap:6px;}
+    #tab-stok td.actions-col .edit-btn{flex:1;}
   }
 
   .tx-row{padding:11px 0;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;gap:10px;}
@@ -155,9 +155,28 @@
   .tx-meta svg{width:12px;height:12px;flex-shrink:0;opacity:.8;}
   .tx-unit{font-size:10.5px;color:var(--amber);}
   .status-badge{display:inline-block;font-size:10px;font-weight:700;padding:2px 7px;border-radius:var(--radius-sm);letter-spacing:0.2px;white-space:nowrap;}
+  /* Tampilkan huruf kapital saat mengetik di field-field ini -- data yang
+     sungguh tersimpan tetap dipaksa kapital juga dari sisi database (RPC),
+     ini murni supaya tampilannya sudah konsisten sejak saat mengetik. */
+  #in_pn, #in_desc, #in_loc, #in_remarks,
+  #ax_note,
+  #tf_pn, #tf_loc, #tf_note,
+  #ep_pn, #ep_desc, #ep_loc, #ep_remarks,
+  #er_pn, #er_desc, #er_note {
+    text-transform: uppercase;
+  }
   .status-badge.rfu{background:var(--green-dim);color:var(--green);}
   .status-badge.not-rfu{background:var(--red-dim);color:var(--red);}
-  .toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:var(--surface-2);border:1px solid var(--amber);padding:10px 18px;border-radius:var(--radius-sm);font-size:13px;z-index:200;max-width:90%;text-align:center;box-shadow:0 6px 20px rgba(0,0,0,.25);}
+  .status-badge.empty{background:var(--border);color:var(--text-muted);}
+  .toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:var(--surface-2);border:1px solid var(--amber);padding:10px 18px;border-radius:var(--radius-sm);font-size:13px;z-index:200;max-width:90%;text-align:center;box-shadow:0 6px 20px rgba(0,0,0,.25);
+    display:flex;align-items:center;gap:8px;justify-content:center;
+    animation:toastIn .28s cubic-bezier(.34,1.56,.64,1);}
+  .toast.toast-out{animation:toastOut .18s ease forwards;}
+  .toast-success{border-color:var(--green);}
+  .toast-check{display:flex;flex-shrink:0;width:16px;height:16px;color:var(--green);}
+  .toast-check svg{width:100%;height:100%;}
+  @keyframes toastIn{from{opacity:0;transform:translateX(-50%) translateY(10px) scale(.9);}to{opacity:1;transform:translateX(-50%) translateY(0) scale(1);}}
+  @keyframes toastOut{from{opacity:1;transform:translateX(-50%) scale(1);}to{opacity:0;transform:translateX(-50%) scale(.92);}}
   .filter-row{display:flex;gap:8px;margin-bottom:10px;}
   .filter-row select{margin-top:0;}
   .sheet-link{display:inline-block;margin-top:8px;font-size:12px;color:var(--blue);}
@@ -209,13 +228,13 @@
     </div>
   </header>
   <div class="stats">
-    <div class="stat"><div class="num" id="statTotal">0</div><div class="lbl">Jenis Part</div></div>
-    <div class="stat"><div class="num" id="statQty">0</div><div class="lbl">Total Qty</div></div>
-    <div class="stat warn stat-clickable" id="statLowCard" role="button" tabindex="0" title="Lihat daftar parts yang stoknya kosong"><div class="num" id="statLow">0</div><div class="lbl">Stok Kosong</div></div>
+    <div class="stat stat-clickable" id="statRfuCard" role="button" tabindex="0" title="Lihat daftar parts berstatus RFU"><div class="num" id="statRfu">0</div><div class="lbl">RFU</div></div>
+    <div class="stat warn stat-clickable" id="statNotRfuCard" role="button" tabindex="0" title="Lihat daftar parts berstatus NOT RFU"><div class="num" id="statNotRfu">0</div><div class="lbl">NOT RFU</div></div>
   </div>
   <nav class="tabs">
     <button data-tab="stok" class="active"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 8 12 3 3 8l9 5 9-5Z"/><path d="M3 8v8l9 5 9-5V8"/><path d="M12 13v8"/></svg>Stok</button>
     <button data-tab="ambil"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v10"/><path d="m8 7 4-4 4 4"/><path d="M4 13v6a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-6"/></svg>Ambil</button>
+    <button data-tab="transfer"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m17 2 4 4-4 4"/><path d="M3 11v-1a4 4 0 0 1 4-4h14"/><path d="m7 22-4-4 4-4"/><path d="M21 13v1a4 4 0 0 1-4 4H3"/></svg>Transfer</button>
     <button data-tab="input"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg>Input</button>
     <button data-tab="riwayat"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg>Riwayat</button>
   </nav>
@@ -228,6 +247,7 @@
           <option value="">Semua Status</option>
           <option value="RFU">RFU</option>
           <option value="NOT RFU">NOT RFU</option>
+          <option value="EMPTY">Tanpa Status</option>
         </select>
       </div>
       <div style="display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:10px;margin-bottom:12px;">
@@ -259,6 +279,24 @@
         <div class="field"><label>Keterangan Keperluan</label><input id="ax_note" class="mono" placeholder="cth: Perbaikan unit E5138"></div>
         <div class="field"><label>Nama Pengambil</label><input id="ax_nama" class="mono" placeholder="Masukan nama anda"></div>
         <button class="btn btn-red btn-block" id="btnAmbil" onclick="ambilBarang()">Simpan Ambil Barang</button>
+      </div>
+    </section>
+    <section id="tab-transfer" style="display:none;">
+      <div class="card">
+        <div class="field"><label>Parts Number</label><input id="tf_pn" class="mono" placeholder="Ketik parts number atau nama part..."></div>
+        <div id="tf_matches"></div>
+        <div id="tf_found"></div>
+        <div class="field"><label>Quantity Dipindah</label><input id="tf_qty" type="number" min="1" class="mono" placeholder="0"></div>
+        <div class="field"><label>Lokasi Tujuan</label><input id="tf_loc" class="mono" list="loc_datalist" autocomplete="off" placeholder="cth: Trackindo, Rak abu, Laydown"></div>
+        <div class="field"><label>Status Tujuan</label>
+          <select id="tf_status">
+            <option value="RFU">RFU</option>
+            <option value="NOT RFU">NOT RFU</option>
+          </select>
+        </div>
+        <div class="field"><label>Keterangan <span style="text-transform:none;font-weight:400;color:var(--text-muted);">(opsional)</span></label><input id="tf_note" class="mono" placeholder="cth: Kirim ke vendor untuk perbaikan"></div>
+        <div class="field"><label>Nama</label><input id="tf_nama" class="mono" placeholder="Masukan nama anda"></div>
+        <button class="btn btn-amber btn-block" id="btnTransfer" onclick="transferBarang()">Simpan Transfer</button>
       </div>
     </section>
     <section id="tab-input" style="display:none;">
@@ -319,6 +357,7 @@
     <div class="field"><label>Lokasi Penyimpanan</label><input id="ep_loc" class="mono" list="loc_datalist" autocomplete="off"></div>
     <div class="field"><label>Status</label>
       <select id="ep_status">
+        <option value="">-- Tanpa Status --</option>
         <option value="RFU">RFU</option>
         <option value="NOT RFU">NOT RFU</option>
       </select>
@@ -372,6 +411,7 @@ window.onerror = function(msg, url, line, col){ showFatalError('JS Error: ' + ms
 function currentTheme(){ return document.documentElement.getAttribute('data-theme') === 'light' ? 'light' : 'dark'; }
 const ICON_MOON = '<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/></svg>';
 const ICON_SUN = '<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/></svg>';
+const ICON_CHECK = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>';
 const ICON_BOX = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M21 8 12 3 3 8l9 5 9-5Z"/><path d="M3 8v8l9 5 9-5V8"/><path d="M12 13v8"/></svg>';
 const ICON_CLOCK = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg>';
 const ICON_NOTE = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9Z"/><path d="M14 3v6h6"/></svg>';
@@ -518,6 +558,7 @@ let riwayatTotal = 0;
 let riwayatShown = 0;
 let currentSheet = 'ALL';
 let ambilSelectedPartId = null;
+let tfSelectedPartId = null;
 // Toggle "tampilkan stok kosong saja" di tab Stok -- bisa dinyalakan lewat
 // tombol ⚠️ Kosong saja, ATAU otomatis dinyalakan saat kartu statistik
 // "Stok Kosong" di header diklik.
@@ -570,6 +611,15 @@ async function runScript(fnName, ...args){
     return runScript('getAllData');
   }
 
+  if (fnName === 'transferStok') {
+    const [id, qty, destLoc, destStatus, note, nama] = args;
+    const { error } = await sb.rpc('transfer_stok', {
+      p_source_id: id, p_qty: qty, p_dest_loc: destLoc, p_dest_status: destStatus, p_note: note, p_nama: nama
+    });
+    if (error) throw new Error(error.message || 'Gagal menyimpan transfer');
+    return runScript('getAllData');
+  }
+
   // --- Fungsi khusus admin (butuh login, dicek lewat RLS di database) ---
   if (fnName === 'updatePart') {
     const [id, unit, pn, desc, loc, qty, status, remarks] = args;
@@ -593,22 +643,33 @@ async function runScript(fnName, ...args){
   throw new Error('Aksi tidak dikenal: ' + fnName);
 }
 
-function toast(msg){
+// Toast biasa dianimasikan pop-in/pop-out. Kalau pesannya mengandung kata
+// "berhasil/tersimpan/dipindah" (pola yang sudah dipakai di semua transaksi
+// sukses di file ini), otomatis dianggap sukses -> border hijau + centang +
+// getar HP sebentar (kalau browser/perangkatnya dukung getar).
+function toast(msg, type){
+  if(!type){ type = /berhasil|tersimpan|dipindah/i.test(msg) ? 'success' : 'info'; }
   const el = document.createElement('div');
-  el.className = 'toast';
-  el.textContent = msg;
+  el.className = 'toast toast-' + type;
+  el.innerHTML = (type === 'success' ? `<span class="toast-check">${ICON_CHECK}</span>` : '') + esc(msg);
   document.getElementById('toastRoot').appendChild(el);
-  setTimeout(()=>el.remove(), 2800);
+  if(type === 'success' && navigator.vibrate){
+    try{ navigator.vibrate(60); }catch(e){}
+  }
+  setTimeout(()=>{
+    el.classList.add('toast-out');
+    setTimeout(()=>el.remove(), 180);
+  }, 2800);
 }
 function esc(s){ return String(s).replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
-// Badge kecil buat status RFU/NOT RFU. Data lama (sebelum kolom status
-// ditambahkan di database) mungkin belum punya nilai status -- dianggap
-// RFU secara default supaya tidak ada part yang "hilang" cuma karena
-// field-nya kosong.
+// Badge kecil buat status RFU/NOT RFU. Status boleh KOSONG (null) --
+// misalnya otomatis dikosongkan saat qty habis -- ditampilkan beda,
+// bukan dipaksa jadi RFU maupun NOT RFU.
 function statusBadge(status){
-  const s = (status || 'RFU').toUpperCase();
-  const isRfu = s === 'RFU';
-  return `<span class="status-badge ${isRfu?'rfu':'not-rfu'}">${isRfu?'RFU':'NOT RFU'}</span>`;
+  const s = (status || '').toUpperCase();
+  if(s === 'RFU') return `<span class="status-badge rfu">RFU</span>`;
+  if(s === 'NOT RFU') return `<span class="status-badge not-rfu">NOT RFU</span>`;
+  return `<span class="status-badge empty">-</span>`;
 }
 
 function init(){
@@ -620,6 +681,7 @@ function init(){
     if(savedNama){
       document.getElementById('in_nama').value = savedNama;
       document.getElementById('ax_nama').value = savedNama;
+      document.getElementById('tf_nama').value = savedNama;
     }
   }catch(e){ /* localStorage tidak tersedia, abaikan */ }
   loadData();
@@ -735,9 +797,8 @@ function render(){
   loadRiwayatPage(1); // transaksi baru saja tersimpan -> balik ke halaman 1 riwayat
 }
 function renderStats(){
-  document.getElementById('statTotal').textContent = parts.length;
-  document.getElementById('statQty').textContent = parts.reduce((s,p)=>s+Number(p.qty),0);
-  document.getElementById('statLow').textContent = parts.filter(p=>Number(p.qty)<=0).length;
+  document.getElementById('statRfu').textContent = parts.filter(p=>(p.status||'').toUpperCase()==='RFU').length;
+  document.getElementById('statNotRfu').textContent = parts.filter(p=>(p.status||'').toUpperCase()==='NOT RFU').length;
 }
 function getUniqueLocations(){
   // Kumpulkan lokasi unik, tanpa peduli besar-kecil huruf.
@@ -787,8 +848,10 @@ function getFilteredStokRows(){
     rows = rows.filter(p => (p.loc || '').trim().toLowerCase() === locFilter);
   }
   const statusFilter = document.getElementById('stok_status_filter').value;
-  if(statusFilter){
-    rows = rows.filter(p => (p.status || 'RFU').toUpperCase() === statusFilter);
+  if(statusFilter === 'EMPTY'){
+    rows = rows.filter(p => !p.status);
+  } else if(statusFilter){
+    rows = rows.filter(p => (p.status || '').toUpperCase() === statusFilter);
   }
   return rows;
 }
@@ -800,7 +863,6 @@ function renderStokSheet(){
 
   let rows = getFilteredStokRows();
   const locFilter = document.getElementById('stok_loc_filter').value;
-  const statusFilter = document.getElementById('stok_status_filter').value;
 
   if(rows.length===0){
     tbody.innerHTML='';
@@ -847,7 +909,7 @@ function exportStokExcel(){
     'Parts Number': p.pn,
     'Parts Description': p.desc,
     'Unit': p.unit,
-    'Status': p.status || 'RFU',
+    'Status': p.status || '-',
     'Lokasi': p.loc || '-',
     'Qty': Number(p.qty),
     'Keterangan': p.remarks || '-'
@@ -868,25 +930,28 @@ function exportStokExcel(){
 }
 document.getElementById('btnExportStok').addEventListener('click', exportStokExcel);
 
-// Kartu statistik "Stok Kosong" di header -- diklik langsung pindah ke tab
-// Stok, reset search/unit/lokasi ke "semua", lalu nyalakan filter kosong,
-// supaya user langsung lihat SEMUA part yang qty-nya 0 tanpa scroll-scroll.
-// Filter ini otomatis mati lagi begitu user klik salah satu pill unit
-// (lihat btnSemua.onclick / btn.onclick di buildSelectors()).
-function showStokKosong(){
-  stokKosongOnly = true;
+// Kartu statistik RFU / NOT RFU di header -- diklik langsung pindah ke tab
+// Stok dan menyalakan filter status yang sesuai, supaya user langsung lihat
+// daftar part-nya tanpa perlu buka dropdown filter manual.
+function filterByStatus(status){
+  stokKosongOnly = false;
   currentSheet = 'ALL';
   document.getElementById('stok_search').value = '';
   document.getElementById('stok_loc_filter').value = '';
-  document.getElementById('stok_status_filter').value = '';
+  document.getElementById('stok_status_filter').value = status;
   stokPage = 1;
   switchTab('stok');
   renderStokSheet();
 }
-const statLowCard = document.getElementById('statLowCard');
-statLowCard.addEventListener('click', showStokKosong);
-statLowCard.addEventListener('keydown', (e)=>{
-  if(e.key==='Enter' || e.key===' '){ e.preventDefault(); showStokKosong(); }
+const statRfuCard = document.getElementById('statRfuCard');
+statRfuCard.addEventListener('click', ()=>filterByStatus('RFU'));
+statRfuCard.addEventListener('keydown', (e)=>{
+  if(e.key==='Enter' || e.key===' '){ e.preventDefault(); filterByStatus('RFU'); }
+});
+const statNotRfuCard = document.getElementById('statNotRfuCard');
+statNotRfuCard.addEventListener('click', ()=>filterByStatus('NOT RFU'));
+statNotRfuCard.addEventListener('keydown', (e)=>{
+  if(e.key==='Enter' || e.key===' '){ e.preventDefault(); filterByStatus('NOT RFU'); }
 });
 
 // Kontrol Prev/Next generik, dipakai untuk tab Stok maupun tab Riwayat
@@ -1063,6 +1128,68 @@ async function ambilBarang(){
   updateAmbilButtonState();
 }
 
+// --- Tab Transfer: pindahkan sebagian/seluruh qty sebuah part ke lokasi
+// (dan/atau status) lain. Kalau kombinasi tujuan sudah ada barisnya,
+// qty tinggal digabung; kalau belum, dibuatkan baris baru otomatis --
+// logika ini ditangani di RPC transfer_stok, bukan di sini.
+document.getElementById('tf_pn').addEventListener('input', function(e){
+  const q = e.target.value.trim().toLowerCase();
+  tfSelectedPartId = null;
+  document.getElementById('tf_found').innerHTML='';
+  updateTransferButtonState();
+  const matchesEl = document.getElementById('tf_matches');
+  if(!q){ matchesEl.innerHTML=''; return; }
+  const matches = parts.filter(p=>partMatchesQuery(p,q));
+  if(matches.length===0){ matchesEl.innerHTML = `<div style="color:var(--red);font-size:12.5px;margin:4px 0 10px;">Parts number / nama part tidak ditemukan.</div>`; return; }
+  if(matches.length===1 && matches[0].pn.toLowerCase()===q){ selectTransferPart(matches[0].id); matchesEl.innerHTML=''; return; }
+  matchesEl.innerHTML = `<div class="suggest-scroll">` + matches.map(p=>`
+    <button type="button" class="btn btn-outline" style="display:block;width:100%;text-align:left;margin-bottom:6px;font-size:12.5px;" onclick="selectTransferPart('${p.id}')">
+      <span class="mono">${esc(p.pn)}</span> — ${esc(p.desc)} <span style="color:var(--amber);">(${esc(p.unit)}, ${esc(p.loc||'-')}, stok ${p.qty})</span> ${statusBadge(p.status)}
+    </button>`).join('') + `</div>`;
+});
+function selectTransferPart(id){
+  tfSelectedPartId = id;
+  const p = parts.find(x=>x.id===id);
+  if(!p) return;
+  document.getElementById('tf_matches').innerHTML='';
+  document.getElementById('tf_pn').value = p.pn;
+  document.getElementById('tf_found').innerHTML = `<div class="found-card"><div class="pn mono">${esc(p.pn)}</div><div class="nm">${esc(p.desc)}</div><div class="stok">Stok saat ini: <strong>${p.qty}</strong>${p.loc ? ' · Lokasi: '+esc(p.loc) : ''} &nbsp;${statusBadge(p.status)}</div><span class="unit">${esc(p.unit)}</span></div>`;
+  // Status tujuan default disamakan dengan status asal -- user tinggal
+  // ubah kalau memang mau sekalian ganti status saat transfer.
+  document.getElementById('tf_status').value = (p.status || 'RFU').toUpperCase();
+  updateTransferButtonState();
+}
+async function transferBarang(){
+  if(!tfSelectedPartId){ toast('Pilih parts number yang valid dari daftar stok'); return; }
+  const part = parts.find(p=>p.id===tfSelectedPartId);
+  if(!part){ toast('Data part tidak ditemukan'); return; }
+  const qty = Number(document.getElementById('tf_qty').value);
+  const destLoc = document.getElementById('tf_loc').value.trim();
+  const destStatus = document.getElementById('tf_status').value;
+  const note = document.getElementById('tf_note').value.trim();
+  const nama = document.getElementById('tf_nama').value.trim();
+  if(!qty || qty<=0){ toast('Quantity harus lebih dari 0'); return; }
+  if(qty > part.qty){ toast(`Stok tidak cukup. Stok tersedia: ${part.qty}`); return; }
+  if(!destLoc){ toast('Lokasi tujuan wajib diisi'); return; }
+  if(!nama){ toast('Nama wajib diisi'); return; }
+  if(destLoc.toLowerCase() === (part.loc||'').trim().toLowerCase() && destStatus === (part.status||'').toUpperCase()){
+    toast('Lokasi & status tujuan sama dengan asal -- tidak ada yang perlu dipindah'); return;
+  }
+
+  const btn = document.getElementById('btnTransfer'); btn.disabled=true; btn.textContent='Menyimpan...';
+  try{
+    const data = await runScript('transferStok', part.id, qty, destLoc, destStatus, note, nama);
+    parts = data.parts; transactions = data.transactions;
+    toast(`${qty} pcs ${part.pn} dipindah ke ${destLoc} (${destStatus})`);
+    document.getElementById('tf_pn').value=''; document.getElementById('tf_qty').value=''; document.getElementById('tf_loc').value=''; document.getElementById('tf_note').value='';
+    document.getElementById('tf_found').innerHTML=''; tfSelectedPartId=null;
+    try{ localStorage.setItem('stok_nama_terakhir', nama); }catch(e){}
+    currentSheet = part.unit; render();
+  }catch(e){ toast('Gagal: ' + (e.message||e)); }
+  btn.textContent='Simpan Transfer';
+  updateTransferButtonState();
+}
+
 // --- Kolom tab Input & Ambil diurutkan sesuai urutan isian di layar.
 // Enter di kolom mana pun akan PINDAH ke kolom berikutnya (seperti Tab),
 // jadi tidak perlu menggerakkan kursor tiap ganti kolom. Enter di kolom
@@ -1081,8 +1208,15 @@ function isAmbilFormReady(){
   const nama = document.getElementById('ax_nama').value.trim();
   return !!ambilSelectedPartId && qty > 0 && !!note && !!nama;
 }
+function isTransferFormReady(){
+  const qty = Number(document.getElementById('tf_qty').value);
+  const destLoc = document.getElementById('tf_loc').value.trim();
+  const nama = document.getElementById('tf_nama').value.trim();
+  return !!tfSelectedPartId && qty > 0 && !!destLoc && !!nama;
+}
 const INPUT_FIELD_ORDER = ['in_unit','in_pn','in_desc','in_loc','in_qty','in_remarks','in_nama'];
 const AMBIL_FIELD_ORDER = ['ax_pn','ax_qty','ax_note','ax_nama'];
+const TRANSFER_FIELD_ORDER = ['tf_pn','tf_qty','tf_loc','tf_status','tf_note','tf_nama'];
 
 function setupEnterNavigation(order, isReadyFn, submitFn){
   order.forEach((id, idx)=>{
@@ -1105,6 +1239,7 @@ function setupEnterNavigation(order, isReadyFn, submitFn){
 }
 setupEnterNavigation(INPUT_FIELD_ORDER, isInputFormReady, inputBarang);
 setupEnterNavigation(AMBIL_FIELD_ORDER, isAmbilFormReady, ambilBarang);
+setupEnterNavigation(TRANSFER_FIELD_ORDER, isTransferFormReady, transferBarang);
 
 // --- Tombol Simpan hidup (jelas & bisa diklik) hanya kalau semua kolom
 // wajib sudah terisi -- dicek ulang tiap kali ada perubahan di kolom mana pun.
@@ -1113,6 +1248,9 @@ function updateInputButtonState(){
 }
 function updateAmbilButtonState(){
   document.getElementById('btnAmbil').disabled = !isAmbilFormReady();
+}
+function updateTransferButtonState(){
+  document.getElementById('btnTransfer').disabled = !isTransferFormReady();
 }
 function bindLiveButtonState(order, updateFn){
   order.forEach(id=>{
@@ -1123,9 +1261,11 @@ function bindLiveButtonState(order, updateFn){
 }
 bindLiveButtonState(INPUT_FIELD_ORDER, updateInputButtonState);
 bindLiveButtonState(AMBIL_FIELD_ORDER, updateAmbilButtonState);
+bindLiveButtonState(TRANSFER_FIELD_ORDER, updateTransferButtonState);
 // Kondisi awal saat halaman baru dibuka: kolom masih kosong -> tombol nonaktif dulu
 updateInputButtonState();
 updateAmbilButtonState();
+updateTransferButtonState();
 
 // --- Edit Data Stok (admin) ---
 function openEditPart(id){
@@ -1135,7 +1275,7 @@ function openEditPart(id){
   document.getElementById('ep_pn').value = p.pn;
   document.getElementById('ep_desc').value = p.desc;
   document.getElementById('ep_loc').value = p.loc || '';
-  document.getElementById('ep_status').value = (p.status || 'RFU').toUpperCase();
+  document.getElementById('ep_status').value = (p.status || '').toUpperCase();
   document.getElementById('ep_qty').value = p.qty;
   document.getElementById('ep_remarks').value = p.remarks || '';
   document.getElementById('editPartModal').dataset.editId = id;
@@ -1205,6 +1345,41 @@ async function saveEditRiwayat(){
     btn.disabled = false; btn.textContent = 'Simpan';
   }
 }
+
+// --- Live update tanpa refresh ---
+// Kalau ada HP lain yang ambil/input/transfer barang, tabel stok & riwayat
+// di layar ini otomatis ikut ter-update sendiri (tanpa perlu tekan refresh),
+// lewat fitur Realtime Supabase. Sengaja TIDAK reset halaman/filter yang
+// sedang dilihat user -- cuma tarik data baru & render ulang di tempat.
+let realtimeDebounce = null;
+function scheduleRealtimeRefresh(fn){
+  clearTimeout(realtimeDebounce);
+  realtimeDebounce = setTimeout(fn, 400);
+}
+async function refreshPartsRealtime(){
+  try{
+    const data = await runScript('getAllData');
+    parts = data.parts;
+    populateLocationFilter();
+    renderStats();
+    renderStokSheet();
+  }catch(e){ /* diamkan -- jangan ganggu user kalau refresh background gagal */ }
+}
+function refreshRiwayatRealtime(){
+  loadRiwayatPage(riwayatPage).catch(()=>{});
+}
+try{
+  sb.channel('stok-live')
+    .on('postgres_changes', { event: '*', schema: 'public', table: 'stok' }, ()=>{
+      scheduleRealtimeRefresh(refreshPartsRealtime);
+    })
+    .subscribe();
+  sb.channel('riwayat-live')
+    .on('postgres_changes', { event: '*', schema: 'public', table: 'riwayat' }, ()=>{
+      scheduleRealtimeRefresh(refreshRiwayatRealtime);
+    })
+    .subscribe();
+}catch(e){ /* kalau Realtime gagal aktif, web tetap jalan normal -- cuma butuh refresh manual */ }
 
 init();
 </script>
