@@ -119,6 +119,10 @@
   td.unit-col,th.unit-col{white-space:nowrap;}
   td.qty{font-family:'Oswald',sans-serif;font-weight:600;text-align:right;font-variant-numeric:tabular-nums;}
   td.loc{color:var(--text);font-weight:500;font-size:13px;}
+  .hl-loc{
+    color: var(--text);
+    font-weight: 600;
+  }
   td.qty.low{color:var(--red);}
 
   /* --- Tampilan mobile: baris tabel Stok jadi kartu ringkas --- */
@@ -142,6 +146,7 @@
     #tab-stok td.loc::before{content:"·";margin-right:8px;color:var(--border-strong);}
     #tab-stok td.qty{order:6;margin-left:auto;font-size:15px;}                  /* Qty */
     #tab-stok td:nth-child(8){order:7;flex-basis:100%;color:var(--text-muted);font-size:12px;margin-top:3px;} /* Keterangan */
+    #tab-stok td:nth-child(8).has-remarks::before{content:"NOTE: ";font-weight:700;}
     #tab-stok td.actions-col{order:8;flex-basis:100%;margin-top:7px;display:flex;gap:6px;}
     #tab-stok td.actions-col .edit-btn{flex:1;}
   }
@@ -212,6 +217,8 @@
   .modal-actions .btn{flex:1;}
   .modal-error{color:var(--red);font-size:12.5px;margin:-4px 0 12px;min-height:1em;}
   .edit-btn{background:transparent;border:1px solid var(--border-strong);color:var(--text-muted);border-radius:var(--radius-sm);padding:5px 9px;font-size:13px;cursor:pointer;line-height:1;}
+  .edit-btn + .edit-btn{margin-left:5px;}
+  .delete-btn{border-color:var(--red);color:var(--red);}
   th.actions-col, td.actions-col{text-align:center;width:1%;white-space:nowrap;}
   .tx-edit{margin-top:6px;}
 </style>
@@ -393,6 +400,35 @@
   </div>
 </div>
 
+<!-- Modal Konfirmasi Hapus Part (tab Stok, admin) -->
+<div id="deleteConfirmModal" class="modal-overlay" style="display:none;">
+  <div class="modal-card" style="max-width:380px;">
+    <h3 style="color:var(--red);">Hapus Baris Ini?</h3>
+    <div id="del_info" style="background:var(--surface-2);border-radius:var(--radius-sm);padding:12px 14px;margin-bottom:14px;"></div>
+    <div style="font-size:12px;color:var(--text-muted);line-height:1.5;margin-bottom:18px;">
+      Riwayat transaksi part ini <strong>tidak ikut terhapus</strong>, cuma barisnya di tab Stok. Tindakan ini tidak bisa dibatalkan.
+    </div>
+    <div class="modal-actions">
+      <button type="button" class="btn btn-outline" onclick="closeModal('deleteConfirmModal')">Batal</button>
+      <button type="button" class="btn btn-red" id="btnConfirmDelete" onclick="executeDeletePart()">Hapus Permanen</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal Konfirmasi Logout Admin -->
+<div id="logoutConfirmModal" class="modal-overlay" style="display:none;">
+  <div class="modal-card" style="max-width:340px;text-align:center;">
+    <h3>Keluar dari Mode Admin?</h3>
+    <div style="font-size:13px;color:var(--text-muted);margin-bottom:18px;">
+      Kamu akan kembali ke tampilan biasa (bukan admin). Bisa login lagi kapan saja.
+    </div>
+    <div class="modal-actions">
+      <button type="button" class="btn btn-outline" onclick="closeModal('logoutConfirmModal')">Batal</button>
+      <button type="button" class="btn btn-red" onclick="closeModal('logoutConfirmModal'); sb.auth.signOut();">Keluar</button>
+    </div>
+  </div>
+</div>
+
 <script>
 // --- DEBUG: tampilkan error apa pun secara visual di layar ---
 function showFatalError(msg){
@@ -514,7 +550,7 @@ function updateAdminUI(){
 
 document.getElementById('adminToggle').addEventListener('click', ()=>{
   if(isAdmin){
-    if(confirm('Keluar dari mode admin?')) sb.auth.signOut();
+    openModal('logoutConfirmModal');
   } else {
     document.getElementById('login_password').value = '';
     document.getElementById('loginError').textContent = '';
@@ -627,6 +663,13 @@ async function runScript(fnName, ...args){
       p_id: id, p_unit: unit, p_pn: pn, p_desc: desc, p_loc: loc, p_qty: qty, p_status: status, p_remarks: remarks
     });
     if (error) throw new Error(error.message || 'Gagal menyimpan perubahan stok');
+    return runScript('getAllData');
+  }
+
+  if (fnName === 'deletePart') {
+    const [id] = args;
+    const { error } = await sb.rpc('delete_part', { p_id: id });
+    if (error) throw new Error(error.message || 'Gagal menghapus part');
     return runScript('getAllData');
   }
 
@@ -889,7 +932,7 @@ function renderStokSheet(){
   const startIdx = (stokPage - 1) * STOK_PAGE_SIZE;
   const pageRows = rows.slice(startIdx, startIdx + STOK_PAGE_SIZE);
 
-  tbody.innerHTML = pageRows.map((p,i)=>`<tr><td>${startIdx+i+1}</td><td class="pn">${esc(p.pn)}</td><td>${esc(p.desc)}</td><td class="unit-col">${esc(p.unit)}</td><td>${statusBadge(p.status)}</td><td class="loc">${esc(p.loc||'-')}</td><td class="qty ${p.qty<=0?'low':''}">${p.qty}</td><td style="color:var(--text-muted);font-size:12.5px;">${esc(p.remarks||'-')}</td>${isAdmin?`<td class="actions-col"><button type="button" class="edit-btn" onclick="openEditPart('${p.id}')">Edit</button></td>`:''}</tr>`).join('');
+  tbody.innerHTML = pageRows.map((p,i)=>`<tr><td>${startIdx+i+1}</td><td class="pn">${esc(p.pn)}</td><td>${esc(p.desc)}</td><td class="unit-col">${esc(p.unit)}</td><td>${statusBadge(p.status)}</td><td class="loc"><span class="hl-loc">${esc(p.loc||'-')}</span></td><td class="qty ${p.qty<=0?'low':''}">${p.qty}</td><td class="${p.remarks?'has-remarks':''}" style="color:var(--text-muted);font-size:12.5px;">${esc(p.remarks||'-')}</td>${isAdmin?`<td class="actions-col"><button type="button" class="edit-btn" onclick="openEditPart('${p.id}')">Edit</button><button type="button" class="edit-btn delete-btn" onclick="confirmDeletePart('${p.id}')" title="Hapus baris ini">\u2715</button></td>`:''}</tr>`).join('');
 
   renderPaginationControls('stokPagination', stokPage, totalPages, rows.length, 'item', (newPage)=>{
     stokPage = newPage;
@@ -1281,6 +1324,34 @@ function openEditPart(id){
   document.getElementById('editPartModal').dataset.editId = id;
   document.getElementById('editPartError').textContent = '';
   openModal('editPartModal');
+}
+let pendingDeleteId = null;
+function confirmDeletePart(id){
+  const p = parts.find(x=>String(x.id)===String(id));
+  if(!p) return;
+  pendingDeleteId = id;
+  document.getElementById('del_info').innerHTML = `
+    <div class="mono" style="color:var(--blue);font-size:13px;">${esc(p.pn)}</div>
+    <div style="font-weight:700;font-size:15px;margin:3px 0;color:var(--text);">${esc(p.desc)}</div>
+    <div style="color:var(--text-muted);font-size:12.5px;">Unit: ${esc(p.unit)} &middot; Lokasi: ${esc(p.loc||'-')} &middot; Qty: ${p.qty}</div>
+  `;
+  openModal('deleteConfirmModal');
+}
+async function executeDeletePart(){
+  const id = pendingDeleteId;
+  if(!id) return;
+  const p = parts.find(x=>String(x.id)===String(id));
+  const btn = document.getElementById('btnConfirmDelete');
+  btn.disabled = true; btn.textContent = 'Menghapus...';
+  try{
+    const data = await runScript('deletePart', id);
+    parts = data.parts; transactions = data.transactions;
+    closeModal('deleteConfirmModal');
+    toast(`Berhasil menghapus ${p ? p.pn : 'part'}`);
+    pendingDeleteId = null;
+    render();
+  }catch(e){ toast('Gagal: ' + (e.message||e)); }
+  btn.disabled = false; btn.textContent = 'Hapus Permanen';
 }
 async function saveEditPart(){
   const id = document.getElementById('editPartModal').dataset.editId;
