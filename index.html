@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="id">
 <head>
@@ -125,30 +126,29 @@
   }
   td.qty.low{color:var(--red);}
 
-  /* --- Tampilan mobile: baris tabel Stok jadi kartu ringkas --- */
+  /* Elemen khusus mobile di dalam sel deskripsi: disembunyikan di desktop */
+  .m-pn,.m-note,.m-actions{display:none;}
+
+  /* --- Tampilan mobile: tetap TABEL, tapi dipadatkan --- */
   @media (max-width:680px){
-    #tab-stok .card{padding:8px;}
-    #tab-stok table,#tab-stok tbody,#tab-stok tr{display:block;width:100%;}
-    #tab-stok thead{display:none;}
-    #tab-stok tr{
-      display:flex;flex-wrap:wrap;align-items:baseline;gap:3px 10px;
-      background:var(--surface-2);border:1px solid var(--border);border-radius:var(--radius-sm);
-      padding:11px 12px;margin-bottom:7px;
-    }
-    #tab-stok tr:last-child{margin-bottom:0;}
-    #tab-stok td{display:block;border:none;padding:0;width:auto;font-size:12.5px;}
-    #tab-stok td:nth-child(1){display:none;}                                   /* No */
-    #tab-stok td.pn{order:1;font-size:12px;}                                    /* Parts Number */
-    #tab-stok td:nth-child(5){order:2;margin-left:auto;}                        /* Status */
-    #tab-stok td:nth-child(3){order:3;flex-basis:100%;font-size:14.5px;font-weight:600;color:var(--text);margin:1px 0 2px;} /* Deskripsi */
-    #tab-stok td:nth-child(4){order:4;color:var(--text-muted);}                 /* Unit */
-    #tab-stok td.loc{order:5;color:var(--text-muted);}
-    #tab-stok td.loc::before{content:"·";margin-right:8px;color:var(--border-strong);}
-    #tab-stok td.qty{order:6;margin-left:auto;font-size:15px;}                  /* Qty */
-    #tab-stok td:nth-child(8){order:7;flex-basis:100%;color:var(--text-muted);font-size:12px;margin-top:3px;} /* Keterangan */
-    #tab-stok td:nth-child(8).has-remarks::before{content:"NOTE: ";font-weight:700;}
-    #tab-stok td.actions-col{order:8;flex-basis:100%;margin-top:7px;display:flex;gap:6px;}
-    #tab-stok td.actions-col .edit-btn{flex:1;}
+    #tab-stok .card{padding:4px 6px;}
+    #tab-stok table{table-layout:auto;}
+    #tab-stok th{font-size:10px;padding:6px 4px;}
+    #tab-stok td{padding:8px 4px;font-size:11.5px;vertical-align:top;}
+    /* kolom yang digabung ke sel deskripsi / disembunyikan */
+    #tab-stok th:nth-child(1),#tab-stok td:nth-child(1),   /* No */
+    #tab-stok th:nth-child(2),#tab-stok td.pn,             /* Parts Number (tampil di sel deskripsi) */
+    #tab-stok th:nth-child(8),#tab-stok td:nth-child(8),   /* Keterangan (tampil sebagai NOTE) */
+    #tab-stok th.actions-col,#tab-stok td.actions-col{display:none;}
+    #tab-stok .m-pn{display:block;font-family:'JetBrains Mono',monospace;font-size:10.5px;color:var(--blue);word-break:break-all;}
+    #tab-stok .m-name{display:block;font-size:12.5px;font-weight:600;color:var(--text);line-height:1.3;margin:2px 0 0;}
+    #tab-stok .m-note{display:block;font-size:10.5px;color:var(--text-muted);margin-top:3px;line-height:1.3;}
+    #tab-stok .m-note b{font-weight:700;}
+    #tab-stok .m-actions{display:flex;gap:6px;margin-top:6px;}
+    #tab-stok td.unit-col{color:var(--text-muted);font-size:11px;}
+    #tab-stok td.loc,#tab-stok td.loc .hl-loc{font-size:11px;font-weight:600;}
+    #tab-stok td.qty{font-size:14px;padding-left:2px;}
+    #tab-stok .status-badge{font-size:9px;padding:2px 5px;}
   }
 
   .tx-row{padding:11px 0;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;gap:10px;}
@@ -932,7 +932,7 @@ function renderStokSheet(){
   const startIdx = (stokPage - 1) * STOK_PAGE_SIZE;
   const pageRows = rows.slice(startIdx, startIdx + STOK_PAGE_SIZE);
 
-  tbody.innerHTML = pageRows.map((p,i)=>`<tr><td>${startIdx+i+1}</td><td class="pn">${esc(p.pn)}</td><td>${esc(p.desc)}</td><td class="unit-col">${esc(p.unit)}</td><td>${statusBadge(p.status)}</td><td class="loc"><span class="hl-loc">${esc(p.loc||'-')}</span></td><td class="qty ${p.qty<=0?'low':''}">${p.qty}</td><td class="${p.remarks?'has-remarks':''}" style="color:var(--text-muted);font-size:12.5px;">${esc(p.remarks||'-')}</td>${isAdmin?`<td class="actions-col"><button type="button" class="edit-btn" onclick="openEditPart('${p.id}')">Edit</button><button type="button" class="edit-btn delete-btn" onclick="confirmDeletePart('${p.id}')" title="Hapus baris ini">\u2715</button></td>`:''}</tr>`).join('');
+  tbody.innerHTML = pageRows.map((p,i)=>`<tr><td>${startIdx+i+1}</td><td class="pn">${esc(p.pn)}</td><td><span class="m-pn">${esc(p.pn)}</span><span class="m-name">${esc(p.desc)}</span>${p.remarks?`<span class="m-note"><b>NOTE:</b> ${esc(p.remarks)}</span>`:''}${isAdmin?`<div class="m-actions"><button type="button" class="edit-btn" onclick="openEditPart('${p.id}')">Edit</button><button type="button" class="edit-btn delete-btn" onclick="confirmDeletePart('${p.id}')" title="Hapus baris ini">\u2715</button></div>`:''}</td><td class="unit-col">${esc(p.unit)}</td><td>${statusBadge(p.status)}</td><td class="loc"><span class="hl-loc">${esc(p.loc||'-')}</span></td><td class="qty ${p.qty<=0?'low':''}">${p.qty}</td><td class="${p.remarks?'has-remarks':''}" style="color:var(--text-muted);font-size:12.5px;">${esc(p.remarks||'-')}</td>${isAdmin?`<td class="actions-col"><button type="button" class="edit-btn" onclick="openEditPart('${p.id}')">Edit</button><button type="button" class="edit-btn delete-btn" onclick="confirmDeletePart('${p.id}')" title="Hapus baris ini">\u2715</button></td>`:''}</tr>`).join('');
 
   renderPaginationControls('stokPagination', stokPage, totalPages, rows.length, 'item', (newPage)=>{
     stokPage = newPage;
