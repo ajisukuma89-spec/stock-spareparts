@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="id">
 <head>
@@ -184,6 +183,34 @@
   @keyframes toastOut{from{opacity:1;transform:translateX(-50%) scale(1);}to{opacity:0;transform:translateX(-50%) scale(.92);}}
   .filter-row{display:flex;gap:8px;margin-bottom:10px;}
   .filter-row select{margin-top:0;}
+  /* Tombol filter + bottom-sheet: hanya dipakai di HP (select bawaan Android terlalu besar) */
+  .filter-btn{display:none;}
+  @media (max-width:680px){
+    #stok_loc_filter,#stok_status_filter{display:none;}
+    .filter-btn{flex:1;min-width:0;display:flex;align-items:center;justify-content:space-between;gap:6px;
+      background:var(--surface-2);border:1px solid var(--border);color:var(--text);
+      padding:10px 11px;border-radius:var(--radius-sm);font-size:13.5px;font-weight:500;font-family:'Inter',sans-serif;cursor:pointer;text-align:left;}
+    .filter-btn .fb-label{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+    .filter-btn svg{width:14px;height:14px;flex-shrink:0;opacity:.7;}
+    .filter-btn.active{border-color:var(--amber);background:var(--amber-dim);color:var(--amber);font-weight:700;}
+  }
+  .sheet-overlay{position:fixed;inset:0;background:rgba(10,11,13,0.6);z-index:600;display:none;align-items:flex-end;justify-content:center;opacity:0;transition:opacity .2s ease;}
+  .sheet-overlay.open{opacity:1;}
+  .sheet{background:var(--surface);border-top:1px solid var(--border-strong);border-radius:16px 16px 0 0;width:100%;max-width:520px;max-height:70vh;
+    display:flex;flex-direction:column;transform:translateY(100%);transition:transform .24s ease;padding-bottom:env(safe-area-inset-bottom);}
+  .sheet-overlay.open .sheet{transform:translateY(0);}
+  .sheet-grip{width:38px;height:4px;border-radius:2px;background:var(--border-strong);margin:8px auto 2px;}
+  .sheet-head{display:flex;align-items:center;justify-content:space-between;padding:6px 16px 8px;border-bottom:1px solid var(--border);}
+  .sheet-head h3{margin:0;font-family:'Oswald',sans-serif;font-weight:600;font-size:15px;}
+  .sheet-close{background:transparent;border:none;color:var(--text-muted);font-size:20px;line-height:1;padding:4px 6px;cursor:pointer;}
+  .sheet-list{overflow-y:auto;padding:4px 10px 12px;overscroll-behavior:contain;}
+  .sheet-item{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:11px 8px;border-bottom:1px solid var(--border);font-size:13.5px;font-weight:500;cursor:pointer;}
+  .sheet-item:last-child{border-bottom:none;}
+  .sheet-item:active{background:var(--surface-2);}
+  .sheet-item.active{color:var(--amber);font-weight:700;}
+  .sheet-item.zero{opacity:.45;}
+  .sheet-item .cnt{color:var(--text-muted);font-size:12px;font-variant-numeric:tabular-nums;flex-shrink:0;}
+  .sheet-item.active .cnt{color:var(--amber);}
   .sheet-link{display:inline-block;margin-top:8px;font-size:12px;color:var(--blue);}
   .pagination{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:12px 2px 2px;}
   .pagination .pg-info{font-size:11.5px;color:var(--text-muted);}
@@ -256,6 +283,8 @@
           <option value="NOT RFU">NOT RFU</option>
           <option value="EMPTY">Tanpa Status</option>
         </select>
+        <button type="button" class="filter-btn" id="locBtn" data-for="stok_loc_filter" data-title="Filter Lokasi"><span class="fb-label">Semua Lokasi</span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg></button>
+        <button type="button" class="filter-btn" id="statusBtn" data-for="stok_status_filter" data-title="Filter Status"><span class="fb-label">Semua Status</span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg></button>
       </div>
       <div style="display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:10px;margin-bottom:12px;">
         <div class="sheet-pills" id="pillsSemua" style="margin-bottom:0;"></div>
@@ -340,6 +369,14 @@
 <button id="themeToggle" class="theme-toggle" title="Ganti mode tampilan" aria-label="Ganti mode tampilan"></button>
 
 <div id="toastRoot"></div>
+
+<div id="filterSheet" class="sheet-overlay" aria-hidden="true">
+  <div class="sheet" role="dialog" aria-modal="true">
+    <div class="sheet-grip"></div>
+    <div class="sheet-head"><h3 id="filterSheetTitle">Filter</h3><button type="button" class="sheet-close" id="filterSheetClose" aria-label="Tutup">&times;</button></div>
+    <div class="sheet-list" id="filterSheetList" role="listbox"></div>
+  </div>
+</div>
 
 <!-- Modal Login Admin -->
 <div id="loginModal" class="modal-overlay" style="display:none;">
@@ -877,7 +914,65 @@ function populateLocationFilter(){
 document.getElementById('stok_loc_filter').addEventListener('change', ()=>{ stokPage = 1; renderStokSheet(); });
 document.getElementById('stok_status_filter').addEventListener('change', ()=>{ stokPage = 1; renderStokSheet(); });
 
-function getFilteredStokRows(){
+// ---------- Bottom-sheet filter (tampilan HP) ----------
+// <select> asli tetap jadi sumber nilai (dipakai semua logika filter & export);
+// di HP select disembunyikan dan diganti tombol + sheet yang lebih ringkas.
+function syncFilterButtons(){
+  [['stok_loc_filter','locBtn'],['stok_status_filter','statusBtn']].forEach(([selId,btnId])=>{
+    const sel = document.getElementById(selId), btn = document.getElementById(btnId);
+    if(!sel || !btn) return;
+    const opt = sel.selectedOptions[0];
+    btn.querySelector('.fb-label').textContent = opt ? opt.textContent : '';
+    btn.classList.toggle('active', !!sel.value);
+  });
+}
+let filterSheetSel = null;
+function openFilterSheet(selId, title){
+  const sel = document.getElementById(selId);
+  const isLoc = selId === 'stok_loc_filter';
+  filterSheetSel = sel;
+  // Jumlah part per opsi, mengikuti filter lain yang sedang aktif
+  const rows = getFilteredStokRows(isLoc ? {loc:true} : {status:true});
+  const counts = new Map();
+  rows.forEach(p=>{
+    const k = isLoc ? (p.loc||'').trim().toLowerCase() : (p.status ? String(p.status).toUpperCase() : 'EMPTY');
+    counts.set(k, (counts.get(k)||0) + 1);
+  });
+  document.getElementById('filterSheetTitle').textContent = title;
+  document.getElementById('filterSheetList').innerHTML = [...sel.options].map(o=>{
+    const n = o.value === '' ? rows.length : (counts.get(o.value)||0);
+    const label = (!isLoc && (o.value==='RFU' || o.value==='NOT RFU')) ? statusBadge(o.value) : esc(o.textContent);
+    const cls = 'sheet-item' + (o.value===sel.value ? ' active' : '') + (n===0 && o.value!=='' ? ' zero' : '');
+    return `<div class="${cls}" role="option" data-val="${esc(o.value)}"><span>${label}</span><span class="cnt">${n}</span></div>`;
+  }).join('');
+  const ov = document.getElementById('filterSheet');
+  ov.style.display = 'flex';
+  ov.setAttribute('aria-hidden','false');
+  requestAnimationFrame(()=>ov.classList.add('open'));
+}
+function closeFilterSheet(){
+  const ov = document.getElementById('filterSheet');
+  ov.classList.remove('open');
+  ov.setAttribute('aria-hidden','true');
+  setTimeout(()=>{ if(!ov.classList.contains('open')) ov.style.display = 'none'; }, 240);
+}
+['locBtn','statusBtn'].forEach(id=>{
+  const btn = document.getElementById(id);
+  btn.addEventListener('click', ()=>openFilterSheet(btn.dataset.for, btn.dataset.title));
+});
+document.getElementById('filterSheetList').addEventListener('click', (e)=>{
+  const item = e.target.closest('.sheet-item');
+  if(!item || !filterSheetSel) return;
+  filterSheetSel.value = item.dataset.val;
+  filterSheetSel.dispatchEvent(new Event('change'));
+  closeFilterSheet();
+});
+document.getElementById('filterSheetClose').addEventListener('click', closeFilterSheet);
+document.getElementById('filterSheet').addEventListener('click', (e)=>{ if(e.target.id==='filterSheet') closeFilterSheet(); });
+document.addEventListener('keydown', (e)=>{ if(e.key==='Escape') closeFilterSheet(); });
+
+function getFilteredStokRows(skip){
+  skip = skip || {};
   const q = document.getElementById('stok_search').value.trim().toLowerCase();
   let rows = currentSheet==='ALL' ? [...parts] : parts.filter(p=>p.unit===currentSheet);
   if(q){
@@ -887,11 +982,13 @@ function getFilteredStokRows(){
     rows = rows.filter(p=>Number(p.qty)<=0);
   }
   const locFilter = document.getElementById('stok_loc_filter').value;
-  if(locFilter){
+  if(locFilter && !skip.loc){
     rows = rows.filter(p => (p.loc || '').trim().toLowerCase() === locFilter);
   }
   const statusFilter = document.getElementById('stok_status_filter').value;
-  if(statusFilter === 'EMPTY'){
+  if(skip.status){
+    // dilewati: dipakai untuk menghitung jumlah per status di bottom-sheet
+  } else if(statusFilter === 'EMPTY'){
     rows = rows.filter(p => !p.status);
   } else if(statusFilter){
     rows = rows.filter(p => (p.status || '').toUpperCase() === statusFilter);
@@ -899,6 +996,7 @@ function getFilteredStokRows(){
   return rows;
 }
 function renderStokSheet(){
+  syncFilterButtons();
   document.querySelectorAll('.sheet-pills button').forEach(b=>b.classList.toggle('active', b.dataset.code===currentSheet));
   const q = document.getElementById('stok_search').value.trim().toLowerCase();
   const tbody = document.getElementById('stokTableBody');
