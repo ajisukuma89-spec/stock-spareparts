@@ -1729,7 +1729,7 @@ function paDetailHtml(p){
     </div>
     ${p.remarks ? `<div class="pa-note"><span>Catatan</span>${esc(p.remarks)}</div>` : ''}
     <div class="pa-actions">
-      <button type="button" class="pa-act take" data-pa="go-ambil" ${empty?'disabled':''}><span class="ic">${PA_ICON.take}</span><span><b>Ambil</b><small>Keluarkan untuk dipakai</small></span></button>
+      <button type="button" class="pa-act take" data-pa="go-ambil" ${empty?'disabled':''}><span class="ic">${PA_ICON.take}</span><span><b>Ambil</b><small>Pakai komponen</small></span></button>
       <button type="button" class="pa-act move" data-pa="go-transfer" ${empty?'disabled':''}><span class="ic">${PA_ICON.move}</span><span><b>Transfer</b><small>Pindah lokasi / status</small></span></button>
     </div>
     ${empty ? `<div class="pa-empty">Stok part ini habis. <button type="button" data-pa="to-input">Tambah stok lewat Input</button></div>` : ''}
