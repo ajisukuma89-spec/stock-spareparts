@@ -114,7 +114,7 @@
 
   #tab-stok .card{overflow-x:auto;}
   table{width:100%;border-collapse:collapse;font-size:13px;}
-  th{text-align:left;color:var(--text-muted);font-size:11px;font-weight:600;padding:6px;border-bottom:1px solid var(--border-strong);}
+  th{text-align:left;color:var(--text-muted);font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.4px;padding:6px;border-bottom:1px solid var(--border-strong);}
   td{padding:9px 6px;border-bottom:1px solid var(--border);}
   tr:last-child td{border-bottom:none;}
   td.pn{font-family:'JetBrains Mono',ui-monospace,monospace;font-size:12px;font-weight:500;letter-spacing:.2px;color:var(--pn);white-space:normal;word-break:break-word;}
@@ -160,6 +160,8 @@
   .tx-meta{font-size:11.5px;color:var(--text-muted);margin-top:4px;display:flex;align-items:center;gap:5px;}
   .tx-meta svg{width:12px;height:12px;flex-shrink:0;opacity:.8;}
   .tx-unit{font-size:10.5px;color:var(--amber);}
+  mark.hl{background:#FFE14D;color:#15130A;border-radius:2px;padding:0 1px;margin:0 -1px;
+    -webkit-box-decoration-break:clone;box-decoration-break:clone;}
   .status-badge{display:inline-block;font-size:10px;font-weight:700;padding:2px 7px;border-radius:var(--radius-sm);letter-spacing:0.2px;white-space:nowrap;}
   /* Tampilkan huruf kapital saat mengetik di field-field ini -- data yang
      sungguh tersimpan tetap dipaksa kapital juga dari sisi database (RPC),
@@ -260,7 +262,6 @@
      Desktop : panel samping kanan -- tabel tetap kelihatan di kiri.
      Satu panel saja; Ambil/Transfer/Edit/Hapus berganti ISI di panel yang
      sama (tidak menumpuk modal di atas modal). */
-  .stok-hint{font-size:12px;color:var(--text-muted);margin:0 0 8px;}
   #stokTableBody tr[data-id]{cursor:pointer;}
   #stokTableBody tr[data-id]:hover td{background:var(--surface-2);}
   #stokTableBody tr[data-id]:focus-visible{outline:2px solid var(--amber);outline-offset:-2px;}
@@ -423,7 +424,6 @@
       <div class="sheet-pills" id="pillsExcavator"></div>
       <div class="cat-label">Bulldozer</div>
       <div class="sheet-pills" id="pillsBulldozer"></div>
-      <p class="stok-hint" id="stokHint">Ketuk baris untuk ambil atau pindahkan part.</p>
       <div class="card">
         <table>
           <thead><tr><th>No</th><th>Parts Number</th><th>Parts Description</th><th class="unit-col">Unit</th><th>Status</th><th>Lokasi</th><th style="text-align:right;">Qty</th><th>Keterangan</th></tr></thead>
@@ -676,9 +676,6 @@ function updateAdminUI(){
   btn.textContent = isAdmin ? 'Logout' : 'Login';
   btn.classList.toggle('on', isAdmin);
   btn.title = isAdmin ? 'Keluar dari mode admin' : 'Login admin';
-  document.getElementById('stokHint').textContent = isAdmin
-    ? 'Ketuk baris untuk ambil, pindahkan, edit, atau hapus part.'
-    : 'Ketuk baris untuk ambil atau pindahkan part.';
   if(typeof paState !== 'undefined' && paState.open && paState.view === 'detail') paRender();
   renderStokSheet();
   renderRiwayat();
@@ -1114,6 +1111,18 @@ function getFilteredStokRows(skip){
   }
   return rows;
 }
+// Stabilo kuning: bungkus bagian teks yang cocok dengan kata kunci pencarian
+// (tidak peduli huruf besar/kecil). Teks tetap di-escape supaya aman.
+function hl(text, q){
+  const t = String(text == null ? '' : text);
+  if(!q) return esc(t);
+  const low = t.toLowerCase(); let out = '', i = 0, k;
+  while((k = low.indexOf(q, i)) !== -1){
+    out += esc(t.slice(i, k)) + '<mark class="hl">' + esc(t.slice(k, k + q.length)) + '</mark>';
+    i = k + q.length;
+  }
+  return out + esc(t.slice(i));
+}
 function renderStokSheet(){
   syncFilterButtons();
   document.querySelectorAll('.sheet-pills button').forEach(b=>b.classList.toggle('active', b.dataset.code===currentSheet));
@@ -1149,7 +1158,7 @@ function renderStokSheet(){
   const startIdx = (stokPage - 1) * STOK_PAGE_SIZE;
   const pageRows = rows.slice(startIdx, startIdx + STOK_PAGE_SIZE);
 
-  tbody.innerHTML = pageRows.map((p,i)=>`<tr data-id="${esc(p.id)}" tabindex="0"><td>${startIdx+i+1}</td><td class="pn">${esc(p.pn)}</td><td><span class="m-pn">${esc(p.pn)}</span><span class="m-name">${esc(p.desc)}</span>${p.remarks?`<span class="m-note"><b>NOTE:</b> ${esc(p.remarks)}</span>`:''}</td><td class="unit-col">${esc(p.unit)}</td><td>${statusBadge(p.status)}</td><td class="loc"><span class="hl-loc">${esc(p.loc||'-')}</span></td><td class="qty ${p.qty<=0?'low':''}">${p.qty}</td><td class="${p.remarks?'has-remarks':''}" style="color:var(--text-muted);font-size:12.5px;">${esc(p.remarks||'-')}</td></tr>`).join('');
+  tbody.innerHTML = pageRows.map((p,i)=>`<tr data-id="${esc(p.id)}" tabindex="0"><td>${startIdx+i+1}</td><td class="pn">${hl(p.pn, q)}</td><td><span class="m-pn">${hl(p.pn, q)}</span><span class="m-name">${hl(p.desc, q)}</span>${p.remarks?`<span class="m-note"><b>NOTE:</b> ${esc(p.remarks)}</span>`:''}</td><td class="unit-col">${esc(p.unit)}</td><td>${statusBadge(p.status)}</td><td class="loc"><span class="hl-loc">${esc(p.loc||'-')}</span></td><td class="qty ${p.qty<=0?'low':''}">${p.qty}</td><td class="${p.remarks?'has-remarks':''}" style="color:var(--text-muted);font-size:12.5px;">${esc(p.remarks||'-')}</td></tr>`).join('');
   markSelectedRow();
 
   renderPaginationControls('stokPagination', stokPage, totalPages, rows.length, 'item', (newPage)=>{
