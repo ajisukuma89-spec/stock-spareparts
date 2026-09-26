@@ -26,6 +26,7 @@
     --green:#4EA97D; --green-dim:#1B3327; --on-green:#08150F;
     --red:#D6604A; --red-dim:#3A211C; --on-red:#170906;
     --blue:#5C97C9; --blue-dim:#1B2A36;
+    --pn:var(--text);
     --radius:7px; --radius-sm:5px;
   }
   :root[data-theme="light"]{
@@ -36,12 +37,13 @@
     --green:#1F7A54; --green-dim:#D8EFE3; --on-green:#FFFFFF;
     --red:#B04730; --red-dim:#F6DCD3; --on-red:#FFFFFF;
     --blue:#2A6494; --blue-dim:#DCEAF5;
+    --pn:var(--text);
   }
   *,*::before,*::after{box-sizing:border-box;}
   body,header.top,.card,input,select,.login-btn,.theme-toggle,.sheet-pills button{transition:background-color .15s ease,color .15s ease,border-color .15s ease;}
   html{-webkit-text-size-adjust:100%;}
   body{margin:0;background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;-webkit-tap-highlight-color:transparent;font-size:14.5px;line-height:1.45;}
-  .mono{font-family:'JetBrains Mono',monospace;font-variant-numeric:tabular-nums;}
+  .mono{font-family:'JetBrains Mono',ui-monospace,monospace;font-variant-numeric:tabular-nums;}
   .app{max-width:760px;margin:0 auto;min-height:100vh;display:flex;flex-direction:column;}
 
   /* ---------- Header ---------- */
@@ -98,9 +100,9 @@
   .btn-outline{background:transparent;border:1px solid var(--border-strong);color:var(--text);}
   .btn-block{width:100%;}
 
-  .found-card{position:relative;border:1px solid var(--blue);background:var(--blue-dim);border-radius:var(--radius);padding:12px 14px 12px 18px;margin-bottom:12px;}
-  .found-card::before{content:"";position:absolute;left:0;top:0;bottom:0;width:4px;background:var(--blue);border-radius:var(--radius) 0 0 var(--radius);}
-  .found-card .pn{font-family:'JetBrains Mono',monospace;color:var(--blue);font-size:12px;}
+  .found-card{position:relative;border:1px solid var(--border);background:var(--surface-2);border-radius:var(--radius);padding:12px 14px 12px 18px;margin-bottom:12px;}
+  .found-card::before{content:"";position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--border-strong);border-radius:var(--radius) 0 0 var(--radius);}
+  .found-card .pn{font-family:'JetBrains Mono',ui-monospace,monospace;color:var(--pn);font-weight:500;font-size:12.5px;letter-spacing:.2px;}
   .found-card .nm{font-size:15.5px;font-weight:700;margin:3px 0;}
   .found-card .stok{font-size:12.5px;color:var(--text-muted);}
   .found-card .unit{display:inline-block;background:var(--surface-2);padding:2px 8px;border-radius:var(--radius-sm);font-size:11px;margin-top:4px;border:1px solid var(--border);}
@@ -115,7 +117,9 @@
   th{text-align:left;color:var(--text-muted);font-size:11px;font-weight:600;padding:6px;border-bottom:1px solid var(--border-strong);}
   td{padding:9px 6px;border-bottom:1px solid var(--border);}
   tr:last-child td{border-bottom:none;}
-  td.pn{font-family:'JetBrains Mono',monospace;font-size:11.5px;color:var(--blue);white-space:normal;word-break:break-word;}
+  td.pn{font-family:'JetBrains Mono',ui-monospace,monospace;font-size:12px;font-weight:500;letter-spacing:.2px;color:var(--pn);white-space:normal;word-break:break-word;}
+  /* (6) Desktop: parts number selalu satu baris, mis. 17A-71-12262A */
+  @media (min-width:681px){ #tab-stok th:nth-child(2), td.pn{white-space:nowrap;word-break:normal;} }
   td.unit-col,th.unit-col{white-space:nowrap;}
   td.qty{font-family:'Oswald',sans-serif;font-weight:600;text-align:right;font-variant-numeric:tabular-nums;}
   td.loc{color:var(--text);font-weight:500;font-size:13px;}
@@ -126,7 +130,7 @@
   td.qty.low{color:var(--red);}
 
   /* Elemen khusus mobile di dalam sel deskripsi: disembunyikan di desktop */
-  .m-pn,.m-note,.m-actions{display:none;}
+  .m-pn,.m-note{display:none;}
 
   /* --- Tampilan mobile: tetap TABEL, tapi dipadatkan --- */
   @media (max-width:680px){
@@ -137,13 +141,11 @@
     /* kolom yang digabung ke sel deskripsi / disembunyikan */
     #tab-stok th:nth-child(1),#tab-stok td:nth-child(1),   /* No */
     #tab-stok th:nth-child(2),#tab-stok td.pn,             /* Parts Number (tampil di sel deskripsi) */
-    #tab-stok th:nth-child(8),#tab-stok td:nth-child(8),   /* Keterangan (tampil sebagai NOTE) */
-    #tab-stok th.actions-col,#tab-stok td.actions-col{display:none;}
-    #tab-stok .m-pn{display:block;font-family:'JetBrains Mono',monospace;font-size:10.5px;color:var(--blue);word-break:break-all;}
+    #tab-stok th:nth-child(8),#tab-stok td:nth-child(8){display:none;} /* Keterangan (tampil sebagai NOTE) */
+    #tab-stok .m-pn{display:block;font-family:'JetBrains Mono',ui-monospace,monospace;font-size:11px;font-weight:500;letter-spacing:.2px;color:var(--pn);word-break:break-all;}
     #tab-stok .m-name{display:block;font-size:12.5px;font-weight:600;color:var(--text);line-height:1.3;margin:2px 0 0;}
     #tab-stok .m-note{display:block;font-size:10.5px;color:var(--text-muted);margin-top:3px;line-height:1.3;}
     #tab-stok .m-note b{font-weight:700;}
-    #tab-stok .m-actions{display:flex;gap:6px;margin-top:6px;}
     #tab-stok td.unit-col{color:var(--text-muted);font-size:11px;}
     #tab-stok td.loc,#tab-stok td.loc .hl-loc{font-size:11px;font-weight:600;}
     #tab-stok td.qty{font-size:14px;padding-left:2px;}
@@ -165,7 +167,7 @@
   #in_pn, #in_desc, #in_loc, #in_remarks,
   #ax_note,
   #tf_pn, #tf_loc, #tf_note,
-  #ep_pn, #ep_desc, #ep_loc, #ep_remarks,
+  #pa_pn, #pa_desc, #pa_loc, #pa_remarks, #pa_note,
   #er_pn, #er_desc, #er_note {
     text-transform: uppercase;
   }
@@ -251,8 +253,124 @@
   .edit-btn{background:transparent;border:1px solid var(--border-strong);color:var(--text-muted);border-radius:var(--radius-sm);padding:5px 9px;font-size:13px;cursor:pointer;line-height:1;}
   .edit-btn + .edit-btn{margin-left:5px;}
   .delete-btn{border-color:var(--red);color:var(--red);}
-  th.actions-col, td.actions-col{text-align:center;width:1%;white-space:nowrap;}
   .tx-edit{margin-top:6px;}
+
+  /* ---------- Aksi cepat: klik baris Stok ----------
+     Mobile  : bottom sheet (panel dari bawah).
+     Desktop : panel samping kanan -- tabel tetap kelihatan di kiri.
+     Satu panel saja; Ambil/Transfer/Edit/Hapus berganti ISI di panel yang
+     sama (tidak menumpuk modal di atas modal). */
+  .stok-hint{font-size:12px;color:var(--text-muted);margin:0 0 8px;}
+  #stokTableBody tr[data-id]{cursor:pointer;}
+  #stokTableBody tr[data-id]:hover td{background:var(--surface-2);}
+  #stokTableBody tr[data-id]:focus-visible{outline:2px solid var(--amber);outline-offset:-2px;}
+  #stokTableBody tr.pa-selected td{background:var(--amber-dim);}
+
+  .pa-overlay{position:fixed;inset:0;z-index:550;display:none;align-items:flex-end;justify-content:center;
+    background:rgba(10,11,13,.55);opacity:0;transition:opacity .2s ease;}
+  .pa-overlay.open{opacity:1;}
+  .pa-panel{position:relative;width:100%;max-width:560px;max-height:min(90vh,760px);max-height:min(90dvh,760px);
+    background:var(--surface);border-top:1px solid var(--border-strong);border-radius:16px 16px 0 0;
+    display:flex;flex-direction:column;transform:translateY(100%);
+    transition:transform .26s cubic-bezier(.2,.8,.2,1);padding-bottom:env(safe-area-inset-bottom);}
+  .pa-overlay.open .pa-panel{transform:none;}
+  .pa-grip-zone{flex-shrink:0;height:22px;display:flex;align-items:center;justify-content:center;touch-action:none;cursor:grab;}
+  .pa-grip{width:36px;height:4px;border-radius:2px;background:var(--border-strong);}
+  .pa-body{overflow-y:auto;overscroll-behavior:contain;padding:0 18px 22px;}
+  body.pa-lock{overflow:hidden;}
+  @media (min-width:681px){
+    .pa-overlay{justify-content:flex-end;align-items:stretch;background:rgba(10,11,13,.35);}
+    .pa-panel{max-width:440px;max-height:none;height:100%;border-radius:0;border-top:none;
+      border-left:1px solid var(--border-strong);transform:translateX(100%);}
+    .pa-grip-zone{display:none;}
+    .pa-panel .pa-head{padding-top:20px;}
+    .pa-body{padding:0 24px 28px;}
+  }
+  @media (prefers-reduced-motion:reduce){ .pa-overlay,.pa-panel{transition:none;} }
+
+  .pa-head{display:flex;align-items:flex-start;gap:10px;padding:6px 0 14px;margin-bottom:16px;
+    border-bottom:1px solid var(--border);position:sticky;top:0;background:var(--surface);z-index:1;}
+  .pa-id{flex:1;min-width:0;}
+  .pa-pn{font-family:'JetBrains Mono',ui-monospace,monospace;font-size:13px;font-weight:500;letter-spacing:.2px;color:var(--pn);word-break:break-all;}
+  .pa-head h3{font-family:'Oswald',sans-serif;font-weight:500;font-size:18px;line-height:1.2;margin:3px 0 0;outline:none;word-break:break-word;}
+  .pa-icon-btn{width:36px;height:36px;margin:-2px -4px 0 0;flex-shrink:0;display:inline-flex;align-items:center;justify-content:center;
+    border-radius:50%;background:var(--surface-2);border:none;color:var(--text-muted);cursor:pointer;position:relative;
+    transition:background-color .15s ease,color .15s ease;}
+  .pa-icon-btn::after{content:"";position:absolute;inset:-5px;} /* area sentuh tetap ~46px */
+  .pa-icon-btn[data-pa="back"]{margin:-2px 0 0 -4px;}
+  .pa-icon-btn svg{width:16px;height:16px;}
+  .pa-icon-btn:hover{background:var(--border);color:var(--text);}
+  .pa-icon-btn:focus-visible{outline:2px solid var(--amber);outline-offset:2px;}
+
+  /* Pelat data: angka stok besar + garis warna status di kiri (hijau RFU, merah NOT RFU) */
+  .pa-plate{display:grid;grid-template-columns:auto 1fr;border:1px solid var(--border);border-radius:var(--radius);
+    overflow:hidden;background:var(--surface-2);--sc:var(--border-strong);}
+  .pa-plate.s-rfu{--sc:var(--green);} .pa-plate.s-not{--sc:var(--red);}
+  .pa-qty{padding:12px 16px 12px 18px;min-width:92px;border-right:1px solid var(--border);box-shadow:inset 3px 0 0 var(--sc);
+    display:flex;flex-direction:column;justify-content:center;}
+  .pa-qty .n{font-family:'Oswald',sans-serif;font-weight:500;font-size:28px;line-height:1;font-variant-numeric:tabular-nums;}
+  .pa-qty .l{font-size:11.5px;color:var(--text-muted);margin-top:5px;}
+  .pa-qty.zero .n{color:var(--red);}
+  .pa-spec{margin:0;padding:12px 14px;display:grid;gap:9px;align-content:center;}
+  .pa-spec div{display:flex;justify-content:space-between;align-items:baseline;gap:12px;}
+  .pa-spec dt{font-size:12px;color:var(--text-muted);}
+  .pa-spec dd{margin:0;font-weight:600;font-size:13.5px;text-align:right;word-break:break-word;}
+  .pa-note{margin-top:12px;padding:2px 0 2px 12px;border-left:2px solid var(--border-strong);font-size:13px;}
+  .pa-note span{display:block;font-size:11.5px;color:var(--text-muted);margin-bottom:2px;}
+
+  .pa-actions{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:18px;}
+  .pa-act{min-height:62px;display:flex;align-items:center;gap:11px;padding:11px 13px;border-radius:var(--radius);
+    background:var(--surface-2);border:1px solid var(--border);color:var(--text);cursor:pointer;text-align:left;
+    font-family:'Inter',sans-serif;transition:border-color .15s ease,background-color .15s ease;}
+  .pa-act .ic{width:32px;height:32px;border-radius:50%;flex-shrink:0;display:inline-flex;align-items:center;justify-content:center;
+    background:var(--surface);color:var(--text-muted);}
+  .pa-act .ic svg{width:16px;height:16px;}
+  .pa-act b{display:block;font-size:14px;font-weight:600;}
+  .pa-act small{display:block;font-size:11.5px;font-weight:400;margin-top:1px;color:var(--text-muted);}
+  .pa-act:hover{border-color:var(--border-strong);}
+  .pa-act:hover .ic{color:var(--amber);}
+  .pa-act:active{transform:translateY(1px);}
+  .pa-act:disabled{opacity:.4;cursor:not-allowed;transform:none;}
+  .pa-empty{margin-top:10px;font-size:12.5px;color:var(--text-muted);}
+  .pa-empty button{background:none;border:none;padding:0;color:var(--amber);font:inherit;font-weight:600;cursor:pointer;text-decoration:underline;}
+
+  .pa-admin{margin-top:22px;padding-top:14px;border-top:1px solid var(--border);display:flex;align-items:center;gap:8px;flex-wrap:wrap;}
+  .pa-admin-label{font-size:12px;color:var(--text-muted);margin-right:auto;}
+  .pa-link{min-height:40px;padding:0 14px;border-radius:var(--radius-sm);background:transparent;border:none;
+    color:var(--text);font-family:'Inter',sans-serif;font-weight:500;font-size:13px;cursor:pointer;}
+  .pa-link:hover{background:var(--surface-2);}
+  .pa-link.danger{color:var(--red);}
+
+  .pa-context{display:flex;align-items:center;gap:8px;flex-wrap:wrap;font-size:12.5px;color:var(--text-muted);margin:-4px 0 16px;}
+  .pa-context strong{color:var(--text);}
+  .pa-stepper{display:grid;grid-template-columns:48px 1fr 48px;gap:8px;margin-top:6px;}
+  .pa-stepper button{height:48px;border-radius:var(--radius-sm);border:1px solid var(--border-strong);background:var(--surface-2);
+    color:var(--text);font-family:'Inter',sans-serif;font-size:20px;font-weight:400;line-height:1;cursor:pointer;}
+  .pa-stepper button:disabled{opacity:.35;cursor:not-allowed;}
+  .pa-stepper input{margin:0;height:48px;text-align:center;font-family:'Oswald',sans-serif;font-size:20px;font-weight:500;
+    -moz-appearance:textfield;appearance:textfield;}
+  .pa-stepper input::-webkit-inner-spin-button,.pa-stepper input::-webkit-outer-spin-button{-webkit-appearance:none;margin:0;}
+  .pa-avail{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-top:8px;font-size:12px;color:var(--text-muted);}
+  .pa-chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px;}
+  .pa-chip{min-height:36px;padding:0 12px;border-radius:var(--radius-sm);background:transparent;border:1px solid var(--border-strong);
+    color:var(--text);font-family:'Inter',sans-serif;font-size:12.5px;font-weight:600;cursor:pointer;}
+  .pa-chip.on{background:var(--surface-2);border-color:var(--text-muted);color:var(--text);}
+  .pa-seg{display:grid;grid-template-columns:1fr 1fr;border:1px solid var(--border-strong);border-radius:var(--radius-sm);overflow:hidden;margin-top:6px;}
+  .pa-seg label{position:relative;display:flex;align-items:center;justify-content:center;min-height:46px;cursor:pointer;
+    font-size:13.5px;font-weight:700;color:var(--text-muted);}
+  .pa-seg label + label{border-left:1px solid var(--border-strong);}
+  .pa-seg input{position:absolute;inset:0;opacity:0;margin:0;cursor:pointer;}
+  .pa-seg label:focus-within{outline:2px solid var(--amber);outline-offset:-2px;}
+  .pa-seg label.on{background:var(--surface-2);color:var(--text);}
+  .pa-seg label.on::before{content:"";width:7px;height:7px;border-radius:50%;margin-right:8px;background:var(--green);}
+  .pa-seg label.on.not::before{background:var(--red);}
+  .pa-opt{font-weight:400;color:var(--text-muted);}
+  .pa-help{font-size:11.5px;color:var(--text-muted);margin-top:5px;line-height:1.4;}
+  .pa-err{color:var(--red);font-size:12.5px;min-height:1em;margin:0 0 10px;}
+  .pa-submit{width:100%;min-height:50px;font-size:14.5px;}
+  .pa-row2{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
+  .pa-warn{border:1px solid var(--red);background:var(--red-dim);padding:12px 14px;border-radius:var(--radius);
+    font-size:13px;line-height:1.5;margin-bottom:16px;}
 </style>
 </head>
 <body>
@@ -305,9 +423,10 @@
       <div class="sheet-pills" id="pillsExcavator"></div>
       <div class="cat-label">Bulldozer</div>
       <div class="sheet-pills" id="pillsBulldozer"></div>
+      <p class="stok-hint" id="stokHint">Ketuk baris untuk ambil atau pindahkan part.</p>
       <div class="card">
         <table>
-          <thead><tr><th>No</th><th>Parts Number</th><th>Parts Description</th><th class="unit-col">Unit</th><th>Status</th><th>Lokasi</th><th style="text-align:right;">Qty</th><th>Keterangan</th><th class="actions-col" id="stokActionsHead" style="display:none;">Aksi</th></tr></thead>
+          <thead><tr><th>No</th><th>Parts Number</th><th>Parts Description</th><th class="unit-col">Unit</th><th>Status</th><th>Lokasi</th><th style="text-align:right;">Qty</th><th>Keterangan</th></tr></thead>
           <tbody id="stokTableBody"></tbody>
         </table>
         <div id="stokEmpty"></div>
@@ -385,6 +504,14 @@
   </div>
 </div>
 
+<!-- Panel aksi cepat baris Stok (bottom sheet di HP, panel samping di desktop) -->
+<div id="partSheet" class="pa-overlay" aria-hidden="true">
+  <div class="pa-panel" role="dialog" aria-modal="true" aria-labelledby="paTitle">
+    <div class="pa-grip-zone" aria-hidden="true"><div class="pa-grip"></div></div>
+    <div class="pa-body" id="paBody"></div>
+  </div>
+</div>
+
 <!-- Modal Login Admin -->
 <div id="loginModal" class="modal-overlay" style="display:none;">
   <div class="modal-card">
@@ -394,33 +521,6 @@
     <div class="modal-actions">
       <button type="button" class="btn btn-outline" onclick="closeModal('loginModal')">Batal</button>
       <button type="button" class="btn btn-amber" id="btnDoLogin" onclick="doAdminLogin()">Login</button>
-    </div>
-  </div>
-</div>
-
-<!-- Modal Edit Part (tab Stok) -->
-<div id="editPartModal" class="modal-overlay" style="display:none;">
-  <div class="modal-card">
-    <h3>Edit Data Stok</h3>
-    <div class="field"><label>Unit Model</label><select id="ep_unit"></select></div>
-    <div class="field"><label>Parts Number</label><input id="ep_pn" class="mono"></div>
-    <div class="field"><label>Parts Description</label><input id="ep_desc" class="mono"></div>
-    <div class="field"><label>Lokasi Penyimpanan</label><input id="ep_loc" class="mono" list="loc_datalist" autocomplete="off"></div>
-    <div class="field"><label>Status</label>
-      <select id="ep_status">
-        <option value="">-- Tanpa Status --</option>
-        <option value="RFU">RFU</option>
-        <option value="NOT RFU">NOT RFU</option>
-      </select>
-    </div>
-    <div class="field"><label>Qty</label><input id="ep_qty" type="number" min="0" class="mono">
-      <div style="font-size:11px;color:var(--text-muted);margin-top:5px;">Note : Mengubah Qty di sini hanya mengoreksi tampilan, TIDAK tercatat di Riwayat. Untuk transaksi masuk/keluar normal, tetap memakai form Input/Ambil Barang.</div>
-    </div>
-    <div class="field"><label>Remarks <span style="text-transform:none;font-weight:400;color:var(--text-muted);">(opsional)</span></label><input id="ep_remarks" class="mono"></div>
-    <div class="modal-error" id="editPartError"></div>
-    <div class="modal-actions">
-      <button type="button" class="btn btn-outline" onclick="closeModal('editPartModal')">Batal</button>
-      <button type="button" class="btn btn-green" id="btnSaveEditPart" onclick="saveEditPart()">Simpan</button>
     </div>
   </div>
 </div>
@@ -440,21 +540,6 @@
     <div class="modal-actions">
       <button type="button" class="btn btn-outline" onclick="closeModal('editRiwayatModal')">Batal</button>
       <button type="button" class="btn btn-green" id="btnSaveEditRiwayat" onclick="saveEditRiwayat()">Simpan</button>
-    </div>
-  </div>
-</div>
-
-<!-- Modal Konfirmasi Hapus Part (tab Stok, admin) -->
-<div id="deleteConfirmModal" class="modal-overlay" style="display:none;">
-  <div class="modal-card" style="max-width:380px;">
-    <h3 style="color:var(--red);">Hapus Baris Ini?</h3>
-    <div id="del_info" style="background:var(--surface-2);border-radius:var(--radius-sm);padding:12px 14px;margin-bottom:14px;"></div>
-    <div style="font-size:12px;color:var(--text-muted);line-height:1.5;margin-bottom:18px;">
-      Riwayat transaksi part ini <strong>tidak ikut terhapus</strong>, cuma barisnya di tab Stok. Tindakan ini tidak bisa dibatalkan.
-    </div>
-    <div class="modal-actions">
-      <button type="button" class="btn btn-outline" onclick="closeModal('deleteConfirmModal')">Batal</button>
-      <button type="button" class="btn btn-red" id="btnConfirmDelete" onclick="executeDeletePart()">Hapus Permanen</button>
     </div>
   </div>
 </div>
@@ -591,7 +676,10 @@ function updateAdminUI(){
   btn.textContent = isAdmin ? 'Logout' : 'Login';
   btn.classList.toggle('on', isAdmin);
   btn.title = isAdmin ? 'Keluar dari mode admin' : 'Login admin';
-  document.getElementById('stokActionsHead').style.display = isAdmin ? '' : 'none';
+  document.getElementById('stokHint').textContent = isAdmin
+    ? 'Ketuk baris untuk ambil, pindahkan, edit, atau hapus part.'
+    : 'Ketuk baris untuk ambil atau pindahkan part.';
+  if(typeof paState !== 'undefined' && paState.open && paState.view === 'detail') paRender();
   renderStokSheet();
   renderRiwayat();
 }
@@ -833,7 +921,6 @@ async function loadRiwayatPage(page){
 
 function buildSelectors(){
   populateUnitSelectGrouped('in_unit');
-  populateUnitSelectGrouped('ep_unit');
   populateUnitSelectGrouped('er_unit');
 
   const filterUnit = document.getElementById('filterUnit');
@@ -860,7 +947,7 @@ function buildSelectors(){
   });
 }
 // Dipakai buat isi <select id="in_unit">, dan dipakai ulang buat dropdown unit
-// di modal Edit Stok (ep_unit) dan Edit Riwayat (er_unit).
+// di modal Edit Riwayat (er_unit).
 function populateUnitSelectGrouped(selectId){
   const sel = document.getElementById(selectId);
   const excGroup = document.createElement('optgroup'); excGroup.label='Excavator';
@@ -1062,7 +1149,8 @@ function renderStokSheet(){
   const startIdx = (stokPage - 1) * STOK_PAGE_SIZE;
   const pageRows = rows.slice(startIdx, startIdx + STOK_PAGE_SIZE);
 
-  tbody.innerHTML = pageRows.map((p,i)=>`<tr><td>${startIdx+i+1}</td><td class="pn">${esc(p.pn)}</td><td><span class="m-pn">${esc(p.pn)}</span><span class="m-name">${esc(p.desc)}</span>${p.remarks?`<span class="m-note"><b>NOTE:</b> ${esc(p.remarks)}</span>`:''}${isAdmin?`<div class="m-actions"><button type="button" class="edit-btn" onclick="openEditPart('${p.id}')">Edit</button><button type="button" class="edit-btn delete-btn" onclick="confirmDeletePart('${p.id}')" title="Hapus baris ini">\u2715</button></div>`:''}</td><td class="unit-col">${esc(p.unit)}</td><td>${statusBadge(p.status)}</td><td class="loc"><span class="hl-loc">${esc(p.loc||'-')}</span></td><td class="qty ${p.qty<=0?'low':''}">${p.qty}</td><td class="${p.remarks?'has-remarks':''}" style="color:var(--text-muted);font-size:12.5px;">${esc(p.remarks||'-')}</td>${isAdmin?`<td class="actions-col"><button type="button" class="edit-btn" onclick="openEditPart('${p.id}')">Edit</button><button type="button" class="edit-btn delete-btn" onclick="confirmDeletePart('${p.id}')" title="Hapus baris ini">\u2715</button></td>`:''}</tr>`).join('');
+  tbody.innerHTML = pageRows.map((p,i)=>`<tr data-id="${esc(p.id)}" tabindex="0"><td>${startIdx+i+1}</td><td class="pn">${esc(p.pn)}</td><td><span class="m-pn">${esc(p.pn)}</span><span class="m-name">${esc(p.desc)}</span>${p.remarks?`<span class="m-note"><b>NOTE:</b> ${esc(p.remarks)}</span>`:''}</td><td class="unit-col">${esc(p.unit)}</td><td>${statusBadge(p.status)}</td><td class="loc"><span class="hl-loc">${esc(p.loc||'-')}</span></td><td class="qty ${p.qty<=0?'low':''}">${p.qty}</td><td class="${p.remarks?'has-remarks':''}" style="color:var(--text-muted);font-size:12.5px;">${esc(p.remarks||'-')}</td></tr>`).join('');
+  markSelectedRow();
 
   renderPaginationControls('stokPagination', stokPage, totalPages, rows.length, 'item', (newPage)=>{
     stokPage = newPage;
@@ -1440,75 +1528,6 @@ updateInputButtonState();
 updateAmbilButtonState();
 updateTransferButtonState();
 
-// --- Edit Data Stok (admin) ---
-function openEditPart(id){
-  const p = parts.find(x=>String(x.id)===String(id));
-  if(!p) return;
-  document.getElementById('ep_unit').value = p.unit;
-  document.getElementById('ep_pn').value = p.pn;
-  document.getElementById('ep_desc').value = p.desc;
-  document.getElementById('ep_loc').value = p.loc || '';
-  document.getElementById('ep_status').value = (p.status || '').toUpperCase();
-  document.getElementById('ep_qty').value = p.qty;
-  document.getElementById('ep_remarks').value = p.remarks || '';
-  document.getElementById('editPartModal').dataset.editId = id;
-  document.getElementById('editPartError').textContent = '';
-  openModal('editPartModal');
-}
-let pendingDeleteId = null;
-function confirmDeletePart(id){
-  const p = parts.find(x=>String(x.id)===String(id));
-  if(!p) return;
-  pendingDeleteId = id;
-  document.getElementById('del_info').innerHTML = `
-    <div class="mono" style="color:var(--blue);font-size:13px;">${esc(p.pn)}</div>
-    <div style="font-weight:700;font-size:15px;margin:3px 0;color:var(--text);">${esc(p.desc)}</div>
-    <div style="color:var(--text-muted);font-size:12.5px;">Unit: ${esc(p.unit)} &middot; Lokasi: ${esc(p.loc||'-')} &middot; Qty: ${p.qty}</div>
-  `;
-  openModal('deleteConfirmModal');
-}
-async function executeDeletePart(){
-  const id = pendingDeleteId;
-  if(!id) return;
-  const p = parts.find(x=>String(x.id)===String(id));
-  const btn = document.getElementById('btnConfirmDelete');
-  btn.disabled = true; btn.textContent = 'Menghapus...';
-  try{
-    const data = await runScript('deletePart', id);
-    parts = data.parts; transactions = data.transactions;
-    closeModal('deleteConfirmModal');
-    toast(`Berhasil menghapus ${p ? p.pn : 'part'}`);
-    pendingDeleteId = null;
-    render();
-  }catch(e){ toast('Gagal: ' + (e.message||e)); }
-  btn.disabled = false; btn.textContent = 'Hapus Permanen';
-}
-async function saveEditPart(){
-  const id = document.getElementById('editPartModal').dataset.editId;
-  const unit = document.getElementById('ep_unit').value;
-  const pn = document.getElementById('ep_pn').value.trim();
-  const desc = document.getElementById('ep_desc').value.trim();
-  const loc = document.getElementById('ep_loc').value.trim();
-  const status = document.getElementById('ep_status').value;
-  const qty = Number(document.getElementById('ep_qty').value);
-  const remarks = document.getElementById('ep_remarks').value.trim();
-  const errEl = document.getElementById('editPartError');
-  if(!pn || !desc){ errEl.textContent = 'Parts Number dan Description wajib diisi.'; return; }
-  const btn = document.getElementById('btnSaveEditPart');
-  btn.disabled = true; btn.textContent = 'Menyimpan...';
-  try{
-    const data = await runScript('updatePart', id, unit, pn, desc, loc, qty, status, remarks);
-    parts = data.parts; transactions = data.transactions;
-    closeModal('editPartModal');
-    toast('Data stok berhasil diperbarui');
-    render();
-  }catch(e){
-    errEl.textContent = e.message || 'Gagal menyimpan.';
-  }finally{
-    btn.disabled = false; btn.textContent = 'Simpan';
-  }
-}
-
 // --- Edit Riwayat (admin) -- cuma field non-stok (unit/pn/desc/keterangan/nama).
 // Jenis & Qty transaksi sengaja tidak bisa diedit supaya stok saat ini
 // tidak jadi tidak sinkron dengan catatan riwayatnya.
@@ -1564,6 +1583,7 @@ async function refreshPartsRealtime(){
     populateLocationFilter();
     renderStats();
     renderStokSheet();
+    paOnDataChanged();
   }catch(e){ /* diamkan -- jangan ganggu user kalau refresh background gagal */ }
 }
 function refreshRiwayatRealtime(){
@@ -1581,6 +1601,415 @@ try{
     })
     .subscribe();
 }catch(e){ /* kalau Realtime gagal aktif, web tetap jalan normal -- cuma butuh refresh manual */ }
+
+// =====================================================================
+// Aksi cepat: klik/ketuk baris di tab Stok -> panel detail part.
+// Dari panel yang SAMA user bisa Ambil / Transfer (semua orang) atau
+// Edit / Hapus (khusus admin). Isi panel berganti, tidak menumpuk modal.
+// Tombol Back HP & tombol Esc menutup panel. Semua simpan tetap lewat
+// RPC yang sudah ada (ambil_barang, transfer_stok, update_part, delete_part).
+// =====================================================================
+const paState = { open:false, id:null, view:'detail', busy:false, returnId:null };
+const PA_ICON = {
+  x:    '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18M6 6l12 12"/></svg>',
+  back: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg>',
+  take: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v10"/><path d="m8 7 4-4 4 4"/><path d="M4 13v6a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-6"/></svg>',
+  move: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m17 2 4 4-4 4"/><path d="M3 11v-1a4 4 0 0 1 4-4h14"/><path d="m7 22-4-4 4-4"/><path d="M21 13v1a4 4 0 0 1-4 4H3"/></svg>'
+};
+
+function paPart(){ return parts.find(p=>String(p.id)===String(paState.id)); }
+function paSavedName(){ try{ return localStorage.getItem('stok_nama_terakhir') || ''; }catch(e){ return ''; } }
+function paSaveName(n){ try{ localStorage.setItem('stok_nama_terakhir', n); }catch(e){} }
+function paStatusClass(st){ const s=(st||'').toUpperCase(); return s==='RFU' ? 's-rfu' : s==='NOT RFU' ? 's-not' : ''; }
+
+function markSelectedRow(){
+  document.querySelectorAll('#stokTableBody tr[data-id]').forEach(tr=>{
+    tr.classList.toggle('pa-selected', paState.open && tr.dataset.id === String(paState.id));
+  });
+}
+
+// ---------- Buka / tutup ----------
+function openPartSheet(id){
+  if(!parts.find(p=>String(p.id)===String(id))) return;
+  paState.id = id; paState.view = 'detail'; paState.returnId = id;
+  if(!paState.open){
+    paState.open = true;
+    try{ history.pushState({ paSheet:true }, ''); }catch(e){}
+    const ov = document.getElementById('partSheet');
+    ov.style.display = 'flex';
+    ov.setAttribute('aria-hidden','false');
+    document.body.classList.add('pa-lock');
+    requestAnimationFrame(()=>requestAnimationFrame(()=>ov.classList.add('open')));
+  }
+  paRender();
+  markSelectedRow();
+}
+function paHide(){
+  if(!paState.open) return;
+  paState.open = false; paState.busy = false;
+  const ov = document.getElementById('partSheet');
+  ov.classList.remove('open');
+  ov.setAttribute('aria-hidden','true');
+  document.body.classList.remove('pa-lock');
+  setTimeout(()=>{ if(!paState.open) ov.style.display = 'none'; }, 260);
+  markSelectedRow();
+  // kembalikan fokus keyboard ke baris yang tadi dibuka (kalau masih ada)
+  const rid = paState.returnId; paState.id = null;
+  const tr = rid ? document.querySelector(`#stokTableBody tr[data-id="${CSS.escape(String(rid))}"]`) : null;
+  if(tr) tr.focus({ preventScroll:true });
+}
+// Tutup lewat UI -> mundurkan history juga, supaya tombol Back HP tetap konsisten
+function closePartSheet(){
+  if(!paState.open) return;
+  if(history.state && history.state.paSheet){ history.back(); } else { paHide(); }
+}
+window.addEventListener('popstate', ()=>{ if(paState.open) paHide(); });
+document.getElementById('partSheet').addEventListener('click', (e)=>{ if(e.target.id === 'partSheet') closePartSheet(); });
+document.addEventListener('keydown', (e)=>{
+  if(!paState.open) return;
+  if(e.key === 'Escape'){ e.preventDefault(); closePartSheet(); return; }
+  if(e.key === 'Tab'){ // jaga fokus tetap di dalam panel
+    const f = [...document.querySelectorAll('#paBody button:not(:disabled), #paBody input, #paBody select, #paBody [tabindex="0"]')]
+      .filter(el=>el.offsetParent !== null);
+    if(!f.length) return;
+    const first = f[0], last = f[f.length-1];
+    if(e.shiftKey && document.activeElement === first){ e.preventDefault(); last.focus(); }
+    else if(!e.shiftKey && document.activeElement === last){ e.preventDefault(); first.focus(); }
+  }
+});
+
+// Klik / Enter di baris tabel
+const stokTbodyEl = document.getElementById('stokTableBody');
+stokTbodyEl.addEventListener('click', (e)=>{
+  const tr = e.target.closest('tr[data-id]');
+  if(!tr) return;
+  // kalau user sedang blok/copy teks parts number, jangan buka panel
+  const sel = window.getSelection ? String(window.getSelection()) : '';
+  if(sel.length > 0) return;
+  openPartSheet(tr.dataset.id);
+});
+stokTbodyEl.addEventListener('keydown', (e)=>{
+  if((e.key === 'Enter' || e.key === ' ') && e.target.matches('tr[data-id]')){
+    e.preventDefault(); openPartSheet(e.target.dataset.id);
+  }
+});
+
+function paGo(view){ paState.view = view; paRender(); }
+
+// ---------- Render ----------
+function paHeadHtml(p, withBack){
+  return `<div class="pa-head">
+    ${withBack ? `<button type="button" class="pa-icon-btn" data-pa="back" aria-label="Kembali ke detail part">${PA_ICON.back}</button>` : ''}
+    <div class="pa-id"><div class="pa-pn">${esc(p.pn)}</div><h3 id="paTitle" tabindex="-1">${esc(p.desc)}</h3></div>
+    <button type="button" class="pa-icon-btn" data-pa="close" aria-label="Tutup">${PA_ICON.x}</button>
+  </div>`;
+}
+function paContextHtml(p){
+  return `<div class="pa-context">Stok <strong>${p.qty} pcs</strong> di <strong>${esc(p.loc||'-')}</strong> ${statusBadge(p.status)}</div>`;
+}
+function paDetailHtml(p){
+  const empty = Number(p.qty) <= 0;
+  return `
+    <div class="pa-plate ${paStatusClass(p.status)}">
+      <div class="pa-qty ${empty?'zero':''}"><span class="n">${p.qty}</span><span class="l">${empty?'stok habis':'pcs tersedia'}</span></div>
+      <dl class="pa-spec">
+        <div><dt>Unit</dt><dd>${esc(p.unit)}</dd></div>
+        <div><dt>Lokasi</dt><dd>${esc(p.loc||'-')}</dd></div>
+        <div><dt>Status</dt><dd>${statusBadge(p.status)}</dd></div>
+      </dl>
+    </div>
+    ${p.remarks ? `<div class="pa-note"><span>Catatan</span>${esc(p.remarks)}</div>` : ''}
+    <div class="pa-actions">
+      <button type="button" class="pa-act take" data-pa="go-ambil" ${empty?'disabled':''}><span class="ic">${PA_ICON.take}</span><span><b>Ambil</b><small>Keluarkan untuk dipakai</small></span></button>
+      <button type="button" class="pa-act move" data-pa="go-transfer" ${empty?'disabled':''}><span class="ic">${PA_ICON.move}</span><span><b>Transfer</b><small>Pindah lokasi / status</small></span></button>
+    </div>
+    ${empty ? `<div class="pa-empty">Stok part ini habis. <button type="button" data-pa="to-input">Tambah stok lewat Input</button></div>` : ''}
+    ${isAdmin ? `<div class="pa-admin">
+      <span class="pa-admin-label">Admin</span>
+      <button type="button" class="pa-link" data-pa="go-edit">Edit data</button>
+      <button type="button" class="pa-link danger" data-pa="go-hapus">Hapus baris</button>
+    </div>` : ''}`;
+}
+function paStepperHtml(max){
+  return `<div class="field"><label for="pa_qty">Jumlah</label>
+    <div class="pa-stepper">
+      <button type="button" data-pa="minus" aria-label="Kurangi jumlah">&minus;</button>
+      <input id="pa_qty" type="number" inputmode="numeric" min="1" max="${max}" value="1">
+      <button type="button" data-pa="plus" aria-label="Tambah jumlah">+</button>
+    </div>
+    <div class="pa-avail"><span id="pa_avail">Tersedia ${max} pcs</span>
+      <button type="button" class="pa-chip" data-pa="all">Semua (${max})</button></div>
+  </div>`;
+}
+function paAmbilHtml(p){
+  return paContextHtml(p) + paStepperHtml(p.qty) + `
+    <div class="field"><label for="pa_note">Keperluan</label><input id="pa_note" class="mono" placeholder="cth: Perbaikan unit E5138" autocomplete="off"></div>
+    <div class="field"><label for="pa_nama">Nama pengambil</label><input id="pa_nama" class="mono" placeholder="Nama kamu" value="${esc(paSavedName())}"></div>
+    <div class="pa-err" id="pa_err" role="alert"></div>
+    <button type="button" class="btn btn-amber pa-submit" id="pa_submit" data-pa="submit-ambil" disabled>Ambil</button>`;
+}
+function paTransferHtml(p){
+  // saran lokasi cepat: lokasi yang paling sering dipakai, selain lokasi asal
+  const count = new Map();
+  parts.forEach(x=>{ const l=(x.loc||'').trim(); if(l) count.set(l.toUpperCase(), (count.get(l.toUpperCase())||0)+1); });
+  const here = (p.loc||'').trim().toUpperCase();
+  const chips = [...count.entries()].filter(([l])=>l!==here).sort((a,b)=>b[1]-a[1]).slice(0,6).map(([l])=>l);
+  const st = (p.status||'RFU').toUpperCase();
+  return paContextHtml(p) + paStepperHtml(p.qty) + `
+    <div class="field"><label for="pa_loc">Lokasi tujuan</label>
+      <input id="pa_loc" class="mono" list="loc_datalist" autocomplete="off" placeholder="cth: Laydown, Lemari hijau">
+      ${chips.length ? `<div class="pa-chips">${chips.map(l=>`<button type="button" class="pa-chip" data-pa="loc" data-loc="${esc(l)}">${esc(l)}</button>`).join('')}</div>` : ''}
+    </div>
+    <div class="field"><label>Status di tujuan</label>
+      <div class="pa-seg" role="radiogroup">
+        <label class="rfu ${st==='RFU'?'on':''}"><input type="radio" name="pa_status" value="RFU" ${st==='RFU'?'checked':''}>RFU</label>
+        <label class="not ${st==='NOT RFU'?'on':''}"><input type="radio" name="pa_status" value="NOT RFU" ${st==='NOT RFU'?'checked':''}>NOT RFU</label>
+      </div>
+    </div>
+    <div class="field"><label for="pa_note">Keterangan <span class="pa-opt">(opsional)</span></label><input id="pa_note" class="mono" placeholder="cth: Kirim ke vendor untuk perbaikan" autocomplete="off"></div>
+    <div class="field"><label for="pa_nama">Nama</label><input id="pa_nama" class="mono" placeholder="Nama kamu" value="${esc(paSavedName())}"></div>
+    <div class="pa-err" id="pa_err" role="alert"></div>
+    <button type="button" class="btn btn-amber pa-submit" id="pa_submit" data-pa="submit-transfer" disabled>Pindahkan</button>`;
+}
+function paEditHtml(p){
+  const unitOpts = ['Excavator','Bulldozer'].map(cat=>`<optgroup label="${cat}">` +
+    UNIT_MODELS.filter(u=>u.cat===cat).map(u=>`<option value="${esc(u.code)}" ${u.code===p.unit?'selected':''}>${esc(u.code)}</option>`).join('') + '</optgroup>').join('');
+  const st = (p.status||'').toUpperCase();
+  return `
+    <div class="field"><label for="pa_unit">Unit model</label><select id="pa_unit">${unitOpts}</select></div>
+    <div class="field"><label for="pa_pn">Parts number</label><input id="pa_pn" class="mono" value="${esc(p.pn)}"></div>
+    <div class="field"><label for="pa_desc">Parts description</label><input id="pa_desc" class="mono" value="${esc(p.desc)}"></div>
+    <div class="pa-row2">
+      <div class="field"><label for="pa_loc">Lokasi</label><input id="pa_loc" class="mono" list="loc_datalist" autocomplete="off" value="${esc(p.loc||'')}"></div>
+      <div class="field"><label for="pa_status_sel">Status</label>
+        <select id="pa_status_sel">
+          <option value="" ${!st?'selected':''}>Tanpa status</option>
+          <option value="RFU" ${st==='RFU'?'selected':''}>RFU</option>
+          <option value="NOT RFU" ${st==='NOT RFU'?'selected':''}>NOT RFU</option>
+        </select></div>
+    </div>
+    <div class="field"><label for="pa_eqty">Qty</label><input id="pa_eqty" type="number" min="0" inputmode="numeric" class="mono" value="${p.qty}">
+      <div class="pa-help">Koreksi qty di sini tidak tercatat di Riwayat. Untuk barang masuk/keluar, pakai Input atau Ambil.</div></div>
+    <div class="field"><label for="pa_remarks">Remarks <span class="pa-opt">(opsional)</span></label><input id="pa_remarks" class="mono" value="${esc(p.remarks||'')}"></div>
+    <div class="pa-err" id="pa_err" role="alert"></div>
+    <button type="button" class="btn btn-amber pa-submit" id="pa_submit" data-pa="submit-edit">Simpan perubahan</button>`;
+}
+function paHapusHtml(p){
+  return `
+    <div class="pa-plate ${paStatusClass(p.status)}" style="margin-bottom:14px;">
+      <div class="pa-qty ${Number(p.qty)<=0?'zero':''}"><span class="n">${p.qty}</span><span class="l">pcs</span></div>
+      <dl class="pa-spec">
+        <div><dt>Unit</dt><dd>${esc(p.unit)}</dd></div>
+        <div><dt>Lokasi</dt><dd>${esc(p.loc||'-')}</dd></div>
+      </dl>
+    </div>
+    <div class="pa-warn">Baris ini akan hilang dari tab Stok. Riwayat transaksinya <strong>tetap tersimpan</strong>. Tindakan ini tidak bisa dibatalkan.</div>
+    <div class="pa-err" id="pa_err" role="alert"></div>
+    <div class="pa-row2">
+      <button type="button" class="btn btn-outline pa-submit" data-pa="back">Batal</button>
+      <button type="button" class="btn btn-red pa-submit" id="pa_submit" data-pa="submit-hapus">Hapus baris</button>
+    </div>`;
+}
+
+function paRender(){
+  const p = paPart();
+  const body = document.getElementById('paBody');
+  if(!p){ closePartSheet(); return; }
+  const v = paState.view;
+  const views = { detail:paDetailHtml, ambil:paAmbilHtml, transfer:paTransferHtml, edit:paEditHtml, hapus:paHapusHtml };
+  body.innerHTML = paHeadHtml(p, v !== 'detail') + (views[v] || paDetailHtml)(p);
+  body.scrollTop = 0;
+  paBind(p);
+  // fokus ke judul (tidak memunculkan keyboard HP), pembaca layar tetap tahu konteksnya
+  const t = document.getElementById('paTitle'); if(t) t.focus({ preventScroll:true });
+}
+
+// ---------- Interaksi ----------
+function paQty(){ const n = parseInt(document.getElementById('pa_qty')?.value, 10); return isNaN(n) ? 0 : n; }
+function paUpdate(){
+  const p = paPart(); if(!p) return;
+  const btn = document.getElementById('pa_submit'); if(!btn) return;
+  const v = paState.view;
+  const val = id => (document.getElementById(id)?.value || '').trim();
+  if(v === 'ambil' || v === 'transfer'){
+    const q = paQty(), max = Number(p.qty);
+    document.querySelector('[data-pa="minus"]').disabled = q <= 1;
+    document.querySelector('[data-pa="plus"]').disabled = q >= max;
+    document.querySelector('[data-pa="all"]').classList.toggle('on', q === max);
+    const qOk = q >= 1 && q <= max;
+    if(v === 'ambil'){
+      btn.disabled = paState.busy || !qOk || !val('pa_note') || !val('pa_nama');
+      btn.textContent = paState.busy ? 'Menyimpan...' : (qOk ? `Ambil ${q} pcs` : 'Ambil');
+    } else {
+      const loc = val('pa_loc').toUpperCase();
+      const st = document.querySelector('input[name="pa_status"]:checked')?.value || 'RFU';
+      const same = loc && loc === (p.loc||'').trim().toUpperCase() && st === (p.status||'').toUpperCase();
+      document.querySelectorAll('[data-pa="loc"]').forEach(c=>c.classList.toggle('on', c.dataset.loc === loc));
+      document.querySelectorAll('.pa-seg label').forEach(l=>l.classList.toggle('on', l.querySelector('input').checked));
+      document.getElementById('pa_err').textContent = same ? 'Lokasi dan status tujuan sama dengan asal. Ganti salah satunya.' : '';
+      btn.disabled = paState.busy || !qOk || !loc || same || !val('pa_nama');
+      btn.textContent = paState.busy ? 'Menyimpan...' : ('Pindahkan' + (qOk ? ` ${q} pcs` : '') + (loc ? ` ke ${loc}` : ''));
+    }
+  }
+}
+function paSetQty(n){
+  const p = paPart(); const inp = document.getElementById('pa_qty'); if(!p || !inp) return;
+  inp.value = Math.max(1, Math.min(Number(p.qty), n));
+  paUpdate();
+}
+function paBind(p){
+  const body = document.getElementById('paBody');
+  body.onclick = (e)=>{
+    const b = e.target.closest('[data-pa]'); if(!b || b.disabled) return;
+    const a = b.dataset.pa;
+    if(a === 'close') closePartSheet();
+    else if(a === 'back') paGo('detail');
+    else if(a === 'go-ambil') paGo('ambil');
+    else if(a === 'go-transfer') paGo('transfer');
+    else if(a === 'go-edit') paGo('edit');
+    else if(a === 'go-hapus') paGo('hapus');
+    else if(a === 'minus') paSetQty(paQty() - 1);
+    else if(a === 'plus') paSetQty(paQty() + 1);
+    else if(a === 'all') paSetQty(Number(paPart().qty));
+    else if(a === 'loc'){ document.getElementById('pa_loc').value = b.dataset.loc; paUpdate(); }
+    else if(a === 'to-input'){ const id = p.id; closePartSheet(); switchTab('input'); pickInputSuggestion(id); document.getElementById('in_qty').focus(); }
+    else if(a.startsWith('submit-')) paSubmit(a.slice(7));
+  };
+  body.oninput = (e)=>{
+    if(e.target.id === 'pa_qty'){
+      const max = Number(paPart().qty), n = parseInt(e.target.value,10);
+      if(!isNaN(n) && n > max) e.target.value = max;
+    }
+    paUpdate();
+  };
+  body.onchange = paUpdate;
+  // Enter = pindah ke kolom berikutnya; di kolom terakhir = simpan (kalau lengkap)
+  const order = [...body.querySelectorAll('input:not([type=radio]), select')];
+  order.forEach((el, i)=>el.addEventListener('keydown', (e)=>{
+    if(e.key !== 'Enter') return;
+    e.preventDefault();
+    if(order[i+1]){ order[i+1].focus(); if(order[i+1].select) order[i+1].select(); }
+    else { const s = document.getElementById('pa_submit'); if(s && !s.disabled) s.click(); }
+  }));
+  paUpdate();
+}
+
+async function paSubmit(kind){
+  const p = paPart(); if(!p || paState.busy) return;
+  const errEl = document.getElementById('pa_err');
+  const btn = document.getElementById('pa_submit');
+  const val = id => (document.getElementById(id)?.value || '').trim();
+  const idleText = btn.textContent;
+  paState.busy = true; btn.disabled = true; btn.textContent = kind === 'hapus' ? 'Menghapus...' : 'Menyimpan...';
+  errEl.textContent = '';
+  try{
+    let data, msg;
+    if(kind === 'ambil'){
+      const q = paQty(), nama = val('pa_nama');
+      data = await runScript('ambilBarang', p.id, q, val('pa_note'), nama);
+      paSaveName(nama);
+      msg = `Ambil ${q} pcs ${p.pn} tersimpan`;
+    } else if(kind === 'transfer'){
+      const q = paQty(), nama = val('pa_nama'), loc = val('pa_loc');
+      const st = document.querySelector('input[name="pa_status"]:checked')?.value || 'RFU';
+      data = await runScript('transferStok', p.id, q, loc, st, val('pa_note'), nama);
+      paSaveName(nama);
+      msg = `${q} pcs ${p.pn} dipindah ke ${loc.toUpperCase()} (${st})`;
+    } else if(kind === 'edit'){
+      const pn = val('pa_pn'), desc = val('pa_desc'), qty = Number(val('pa_eqty'));
+      if(!pn || !desc) throw new Error('Parts number dan description wajib diisi.');
+      if(!Number.isInteger(qty) || qty < 0) throw new Error('Qty harus angka bulat 0 atau lebih.');
+      data = await runScript('updatePart', p.id, val('pa_unit'), pn, desc, val('pa_loc'), qty, val('pa_status_sel'), val('pa_remarks'));
+      msg = 'Perubahan data stok tersimpan';
+    } else if(kind === 'hapus'){
+      data = await runScript('deletePart', p.id);
+      msg = `Berhasil menghapus ${p.pn}`;
+    }
+    parts = data.parts;
+    paState.busy = false;
+    closePartSheet();
+    toast(msg);
+    populateLocationFilter();
+    render();
+  }catch(e){
+    paState.busy = false;
+    errEl.textContent = e.message || 'Gagal menyimpan. Cek koneksi lalu coba lagi.';
+    btn.textContent = idleText;
+    btn.disabled = false;
+    paUpdate();
+  }
+}
+
+// ---------- Geser ke bawah untuk menutup (khusus HP) ----------
+// Bisa digeser dari pegangan/judul kapan saja, atau dari isi panel kalau
+// isinya sedang di posisi paling atas (supaya tidak bentrok dengan scroll).
+(function(){
+  const ov = document.getElementById('partSheet');
+  const panel = ov.querySelector('.pa-panel');
+  const body = document.getElementById('paBody');
+  const isMobile = ()=>!window.matchMedia('(min-width:681px)').matches;
+  let armed = false, dragging = false, startY = 0, dy = 0, t0 = 0;
+  function reset(){
+    panel.style.transition = ''; panel.style.transform = '';
+    ov.style.transition = ''; ov.style.opacity = '';
+  }
+  panel.addEventListener('touchstart', (e)=>{
+    if(!isMobile() || !paState.open || e.touches.length !== 1) return;
+    const onHandle = !!e.target.closest('.pa-grip-zone, .pa-head');
+    if(!onHandle && (body.scrollTop > 0 || e.target.closest('input, select, textarea, .pa-stepper'))) return;
+    armed = true; dragging = false; dy = 0;
+    startY = e.touches[0].clientY; t0 = performance.now();
+  }, { passive:true });
+  panel.addEventListener('touchmove', (e)=>{
+    if(!armed) return;
+    dy = e.touches[0].clientY - startY;
+    if(!dragging){
+      if(dy > 8){ dragging = true; panel.style.transition = 'none'; ov.style.transition = 'none'; }
+      else if(dy < -8){ armed = false; return; }
+      else return;
+    }
+    e.preventDefault();
+    const d = Math.max(0, dy);
+    panel.style.transform = `translateY(${d}px)`;
+    ov.style.opacity = String(Math.max(0.35, 1 - d / (panel.offsetHeight * 1.4)));
+  }, { passive:false });
+  function end(){
+    if(!armed) return;
+    armed = false;
+    if(!dragging) return;
+    dragging = false;
+    const speed = dy / Math.max(1, performance.now() - t0); // px per ms
+    panel.style.transition = ''; ov.style.transition = '';
+    if(dy > panel.offsetHeight * 0.3 || (dy > 50 && speed > 0.5)){
+      panel.style.transform = 'translateY(100%)';
+      ov.style.opacity = '';
+      closePartSheet();
+      setTimeout(reset, 300);
+    } else {
+      reset();
+    }
+  }
+  panel.addEventListener('touchend', end);
+  panel.addEventListener('touchcancel', end);
+})();
+
+// Data berubah dari HP lain (Realtime) saat panel terbuka
+function paOnDataChanged(){
+  if(!paState.open || paState.busy) return;
+  const p = paPart();
+  if(!p){ closePartSheet(); toast('Baris ini baru saja dihapus dari perangkat lain'); return; }
+  if(paState.view === 'detail'){ paRender(); return; }
+  if(paState.view === 'ambil' || paState.view === 'transfer'){
+    if(Number(p.qty) <= 0){ paGo('detail'); toast('Stok part ini baru saja habis'); return; }
+    // jangan hapus isian user -- cukup perbarui batas maksimal
+    document.getElementById('pa_avail').textContent = `Tersedia ${p.qty} pcs`;
+    const all = document.querySelector('[data-pa="all"]'); if(all) all.textContent = `Semua (${p.qty})`;
+    const inp = document.getElementById('pa_qty'); inp.max = p.qty;
+    if(paQty() > p.qty) inp.value = p.qty;
+    const ctx = document.querySelector('.pa-context strong'); if(ctx) ctx.textContent = `${p.qty} pcs`;
+    paUpdate();
+  }
+}
 
 init();
 </script>
